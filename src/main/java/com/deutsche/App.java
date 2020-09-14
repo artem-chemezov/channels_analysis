@@ -1,7 +1,7 @@
 package com.deutsche;
 
-import com.deutsche.model.User;
-import com.deutsche.services.UserService;
+import com.deutsche.users.model.User;
+import com.deutsche.users.services.UserService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;

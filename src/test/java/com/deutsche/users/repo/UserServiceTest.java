@@ -1,6 +1,6 @@
-package com.deutsche.repo;
+package com.deutsche.users.repo;
 
-import com.deutsche.model.User;
+import com.deutsche.users.model.User;
 import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

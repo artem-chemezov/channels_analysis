@@ -1,4 +1,4 @@
-package com.deutsche;
+package com.deutsche.view;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,10 +19,10 @@ public class Bot extends TelegramLongPollingBot {
 
     @Setter
     @Getter
-    String userName;
+    String userName;// = "Test_java_09_09_2020_bot";
     @Setter
     @Getter
-    String token;
+    String token;// = "1335623903:AAHXfpsJqnRkwFSOiuD_rqUWpVgLJ7duMbg";
 
     @Override
     public String getBotUsername() {
@@ -71,4 +71,9 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
+
+    public static void main(String[] args) {
+        Bot bot = new Bot("Test_java_09_09_2020_bot", "1335623903:AAHXfpsJqnRkwFSOiuD_rqUWpVgLJ7duMbg");
+        bot.botConnect();
+    }
 }

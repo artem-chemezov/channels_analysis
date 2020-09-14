@@ -1,11 +1,8 @@
-package com.deutsche.services;
+package com.deutsche.users.services;
 
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.deutsche.model.User;
-import com.deutsche.repo.UserRepo;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
+import com.deutsche.users.model.User;
+import com.deutsche.users.repo.UserRepo;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

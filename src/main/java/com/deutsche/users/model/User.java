@@ -1,4 +1,4 @@
-package com.deutsche.model;
+package com.deutsche.users.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import java.util.Currency;
 
 
-@Data
 @Entity
 @Builder
 @NoArgsConstructor

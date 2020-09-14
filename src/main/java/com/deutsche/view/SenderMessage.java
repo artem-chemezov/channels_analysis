@@ -1,4 +1,4 @@
-package com.deutsche;
+package com.deutsche.view;
 
 import java.io.*;
 import java.net.URL;
@@ -21,9 +21,7 @@ public class SenderMessage {
             URL url = new URL(urlString);
             URLConnection conn = url.openConnection();
             InputStream is = new BufferedInputStream(conn.getInputStream());
-
-
-
+            
             //getting text, we can set it to any TextView
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String inputLine = "";
@@ -41,6 +39,6 @@ public class SenderMessage {
     }
 
     public static void main(String[] args) {
-        sendToTelegram();
+        new Bot().botConnect();
     }
 }
