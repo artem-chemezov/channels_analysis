@@ -1,34 +1,35 @@
-package com.deutsche.view;
+package com.deutsche.view.handlers;
 
 import com.deutsche.view.tools.Buttons;
 import com.deutsche.view.tools.Keyboard;
-import lombok.AllArgsConstructor;
+import com.deutsche.view.tools.KeyboardRows;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+
 @Component
+@NoArgsConstructor
 public class ResponseHandler implements Handler{
     private Buttons state;
+    @Autowired
     private Keyboard keyboard;
 
-    public ResponseHandler() {
-        this.keyboard = new Keyboard();
-        this.state = Buttons.DEFAULT;
-    }
-
-    public SendMessage handle(Update update, List<String> params){
+    public SendMessage handle(Update update){
         SendMessage resultMessage = new SendMessage();
         if (update.getMessage().getText().startsWith("/start")){
             keyboard.setButtons(resultMessage);
             resultMessage.setText("Choose your option!");
+            state = Buttons.DEFAULT;
             return resultMessage;
         }
 
@@ -43,6 +44,12 @@ public class ResponseHandler implements Handler{
 
         String result = state.onClick.apply(Arrays.asList(update.getMessage().getText().split(";")));
         resultMessage.setText(result);
+        state = Buttons.DEFAULT;
         return resultMessage;
+    }
+
+    @PostConstruct
+    private void setState(){
+        this.state = Buttons.DEFAULT;
     }
 }
