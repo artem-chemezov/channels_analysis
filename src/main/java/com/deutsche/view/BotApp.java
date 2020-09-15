@@ -8,6 +8,7 @@ import org.telegram.telegrambots.ApiContextInitializer;
 @SpringBootApplication
 public class BotApp {
     public static void main(String[] args) {
+        ApiContextInitializer.init();
         ConfigurableApplicationContext context = SpringApplication.run(Conf.class, args);
     }
 }

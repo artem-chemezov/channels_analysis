@@ -23,18 +23,21 @@ public class ResponseHandler implements Handler{
     private Buttons state;
     @Autowired
     private Keyboard keyboard;
+    private String message;
 
     public SendMessage handle(Update update){
+        message = update.getMessage().getText();
         SendMessage resultMessage = new SendMessage();
-        if (update.getMessage().getText().startsWith("/start")){
+
+        if (message.startsWith("/start")){
             keyboard.setButtons(resultMessage);
             resultMessage.setText("Choose your option!");
             state = Buttons.DEFAULT;
             return resultMessage;
         }
 
-        if (Stream.of(Buttons.values()).anyMatch(value -> value.label.equals(update.getMessage().getText()))){
-            Optional<Buttons> option = Stream.of(Buttons.values()).filter(value -> value.label.equals(update.getMessage().getText())).findFirst();
+        if (Stream.of(Buttons.values()).anyMatch(value -> value.label.equals(message))){
+            Optional<Buttons> option = Stream.of(Buttons.values()).filter(value -> value.label.equals(message)).findFirst();
             String result = option.orElse(Buttons.DEFAULT).requiredParams;
             state = option.orElse(Buttons.DEFAULT);
             keyboard.setEmpty(resultMessage);
@@ -42,7 +45,7 @@ public class ResponseHandler implements Handler{
             return resultMessage;
         }
 
-        String result = state.onClick.apply(Arrays.asList(update.getMessage().getText().split(";")));
+        String result = state.onClick.apply(Arrays.asList(message.split(";")));
         resultMessage.setText(result);
         state = Buttons.DEFAULT;
         return resultMessage;

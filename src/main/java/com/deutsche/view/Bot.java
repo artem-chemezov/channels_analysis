@@ -4,14 +4,13 @@ import com.deutsche.view.handlers.Handler;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
-
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 
 @AllArgsConstructor
@@ -19,12 +18,15 @@ import java.util.List;
 @Builder
 @Setter
 @Getter
+@Service
 public class Bot extends TelegramLongPollingBot {
     final int RECONNECT_PAUSE =10000;
-    @Value("Test_java_09_09_2020_bot")
+
+    @Value("${bot-username}")
     private String userName;
-    @Value("1335623903:AAHXfpsJqnRkwFSOiuD_rqUWpVgLJ7duMbg")
+    @Value("${bot-token}")
     private String token;
+
     @Autowired
     private Handler handler;
 

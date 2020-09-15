@@ -31,70 +31,48 @@ class ResponseHandlerTest {
     private Handler handler;
 
     @SneakyThrows
-    @Test
-    void testThatHandleReturnsDefaultWhenUncorrectCommand() {
+    private Update createUpdate(String textStr){
         Message message = new Message();
         Field text = message.getClass().getDeclaredField("text");
         text.setAccessible(true);
-        text.set(message, "Invalid command");
+        text.set(message, textStr);
         Update update = new Update();
         Field mes = update.getClass().getDeclaredField("message");
         mes.setAccessible(true);
         mes.set(update, message);
+        return update;
+    }
+
+    @Test
+    void testThatHandleReturnsDefaultWhenUncorrectCommand() {
+        Update update = createUpdate("Invalid command");
         Assertions.assertTrue(handler.handle(update).getText().equals("Мы не знаем таких команд :("));
     }
 
-    @SneakyThrows
     @Test
     void testHandleReturnsCategorizeChannel() {
-        Message message = new Message();
-        Field text = message.getClass().getDeclaredField("text");
-        text.setAccessible(true);
-        text.set(message, "Классификация канала");
-        Update update = new Update();
-        Field mes = update.getClass().getDeclaredField("message");
-        mes.setAccessible(true);
-        mes.set(update, message);
+        Update update = createUpdate("Классификация канала");
         Assertions.assertTrue(handler.handle(update).getText().equals("Введи канал/группу в формате @testChannel"));
 
-        text.set(message, "Классификация; канала; eafd");
-        mes.set(update, message);
+        update = createUpdate("Классификация; канала; eafd");
         handler.handle(update);
     }
 
-    @SneakyThrows
     @Test
     void testHandleReturnsStatistics() {
-        Message message = new Message();
-        Field text = message.getClass().getDeclaredField("text");
-        text.setAccessible(true);
-        text.set(message, "Статистика");
-        Update update = new Update();
-        Field mes = update.getClass().getDeclaredField("message");
-        mes.setAccessible(true);
-        mes.set(update, message);
+        Update update = createUpdate("Статистика");
         Assertions.assertTrue(handler.handle(update).getText().equals("Введи канал/группу, дату с, дату по в формате @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45"));
 
-        text.set(message, "Классификация; канала; eafd");
-        mes.set(update, message);
+        update = createUpdate("Классификация; канала; eafd");
         handler.handle(update);
     }
 
-    @SneakyThrows
     @Test
     void testHandleReturnsWordFromChannel() {
-        Message message = new Message();
-        Field text = message.getClass().getDeclaredField("text");
-        text.setAccessible(true);
-        text.set(message, "Поиск слова на каннале");
-        Update update = new Update();
-        Field mes = update.getClass().getDeclaredField("message");
-        mes.setAccessible(true);
-        mes.set(update, message);
+        Update update = createUpdate("Поиск слова на каннале");
         Assertions.assertTrue(handler.handle(update).getText().equals("Введи слово, канал/группу, дату с, дату по в формате Кино; @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45"));
 
-        text.set(message, "Классификация; канала; eafd");
-        mes.set(update, message);
+        update = createUpdate("Классификация; канала; eafd");
         handler.handle(update);
     }
 }
