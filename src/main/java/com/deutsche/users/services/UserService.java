@@ -12,7 +12,6 @@ public class UserService {
     private UserRepo userRepo;
 
     public void saveUser(User user){
-        user.setLastVisit(LocalDateTime.now());
         userRepo.save(user);
     }
 

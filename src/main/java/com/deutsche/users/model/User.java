@@ -1,9 +1,6 @@
 package com.deutsche.users.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.persistence.Entity;
@@ -17,13 +14,14 @@ import java.util.Currency;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Setter
+@Getter
 public class User {
     @Id
     @GeneratedValue
     private int id;
     private String name;
     private String login;
-    private LocalDateTime lastVisit;
     @Value("0")
     private Currency balance;
     @Value("false")
