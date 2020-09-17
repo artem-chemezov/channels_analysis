@@ -4,6 +4,7 @@ import com.deutsche.view.tools.methods.CategorizeChannel;
 import com.deutsche.view.tools.methods.Statistics;
 import com.deutsche.view.tools.methods.WordFromChannel;
 import lombok.AllArgsConstructor;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,5 +20,5 @@ public enum Buttons {
 
     public String label;
     public String requiredParams;
-    public Function<List<String>,String> onClick;
+    public Function<JSONObject,String> onClick;
 }

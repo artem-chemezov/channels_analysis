@@ -2,10 +2,8 @@ package com.deutsche.view.handlers;
 
 import com.deutsche.view.tools.Buttons;
 import com.deutsche.view.tools.Keyboard;
-import com.deutsche.view.tools.KeyboardRows;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -45,7 +43,13 @@ public class ResponseHandler implements Handler{
             return resultMessage;
         }
 
-        String result = state.onClick.apply(Arrays.asList(message.split(";")));
+        JSONObject json = new JSONObject();
+        List<String> splits = Arrays.asList(message.split(";"));
+        json.put("userId", update.getMessage().getFrom().getId());
+        json.put("word", splits.get(0));
+        json.put("group", splits.get(1));
+        json.put("amount", splits.get(2));
+        String result = state.onClick.apply(json);
         resultMessage.setText(result);
         state = Buttons.DEFAULT;
         return resultMessage;
