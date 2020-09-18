@@ -23,33 +23,36 @@ public class ResponseHandler implements Handler{
     private Keyboard keyboard;
     private String message;
 
-    public SendMessage handle(Update update){
+    public List<SendMessage> handle(Update update){
         message = update.getMessage().getText();
-        SendMessage resultMessage = new SendMessage();
+
 
         if (message.startsWith("/start")){
+            SendMessage resultMessage = new SendMessage();
             keyboard.setButtons(resultMessage);
             resultMessage.setText("Choose your option!");
             state = Buttons.DEFAULT;
-            return resultMessage;
+            return List.of(resultMessage);
         }
 
         if (Stream.of(Buttons.values()).anyMatch(value -> value.label.equals(message))){
+            SendMessage resultMessage = new SendMessage();
             Optional<Buttons> option = Stream.of(Buttons.values()).filter(value -> value.label.equals(message)).findFirst();
             String result = option.orElse(Buttons.DEFAULT).requiredParams;
             state = option.orElse(Buttons.DEFAULT);
             keyboard.setEmpty(resultMessage);
             resultMessage.setText(result);
-            return resultMessage;
+            return List.of(resultMessage);
         }
 
         List<String> params = new ArrayList<>();
         params.add(update.getMessage().getFrom().getId().toString());
         params.addAll(Arrays.asList(message.split(";")));
-        String result = state.onClick.apply(params);
-        resultMessage.setText(result);
+        List<String> result = state.onClick.apply(params);
+        List<SendMessage> messages = new ArrayList<>();
+        result.forEach(text -> messages.add(new SendMessage().setText(text)));
         state = Buttons.DEFAULT;
-        return resultMessage;
+        return messages;
     }
 
     @PostConstruct

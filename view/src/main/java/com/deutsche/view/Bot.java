@@ -10,7 +10,9 @@ import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
+
 import javax.annotation.PostConstruct;
+import java.util.List;
 
 
 @AllArgsConstructor
@@ -46,9 +48,16 @@ public class Bot extends TelegramLongPollingBot {
         System.out.println("Receive new Update. updateID: " + update.getUpdateId() + "text: " + update.getMessage().getText());
         Long chatId = update.getMessage().getChatId();
         String inputText = update.getMessage().getText();
-        SendMessage message = handler.handle(update);
-        message.setChatId(chatId);
-        execute(message);
+        List<SendMessage> messages = handler.handle(update);
+        messages.forEach(message -> {
+            try {
+                message.setChatId(chatId);
+                execute(message);
+            }
+            catch (Exception ex){
+                System.out.println("Error send message");
+            }
+        });
     }
 
     @PostConstruct

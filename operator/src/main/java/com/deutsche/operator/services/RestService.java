@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,14 +32,14 @@ public class RestService {
     }
 
     @SneakyThrows
-    public JSONObject posts(int groupId, int amount){
+    public Object[] posts(int groupId, int amount){
         JSONObject result = new JSONObject();
         String query = baseUrl + "group/posts?";
         query += "groupId=" + groupId;
         query += "&amount=" + amount;
         System.out.println("postsURL: " + query);
-        JSONArray jsonArrayStr = new JSONArray(restTemplate.getForObject(query, String.class));
-        return jsonArrayStr.getJSONObject(0);
+        ResponseEntity<Object[]> answer = restTemplate.getForEntity(query, Object[].class);
+        return answer.getBody();
     }
 
     public int clasify(String word, int groupId, GroupsDefinition groupDefinition){

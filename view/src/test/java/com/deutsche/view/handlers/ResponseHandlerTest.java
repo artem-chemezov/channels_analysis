@@ -36,13 +36,13 @@ class ResponseHandlerTest {
     @Test
     void testThatHandleReturnsDefaultWhenUncorrectCommand() {
         Update update = createUpdate("Invalid command");
-        Assertions.assertTrue(handler.handle(update).getText().equals("Мы не знаем таких команд :("));
+        Assertions.assertTrue(handler.handle(update).get(0).equals("Мы не знаем таких команд :("));
     }
 
     @Test
     void testHandleReturnsCategorizeChannel() {
         Update update = createUpdate("Классификация канала");
-        Assertions.assertTrue(handler.handle(update).getText().equals("Введи канал/группу в формате @testChannel"));
+        Assertions.assertTrue(handler.handle(update).get(0).equals("Введи канал/группу в формате @testChannel"));
 
         update = createUpdate("Классификация; канала; eafd");
         handler.handle(update);
@@ -51,7 +51,7 @@ class ResponseHandlerTest {
     @Test
     void testHandleReturnsStatistics() {
         Update update = createUpdate("Статистика");
-        Assertions.assertTrue(handler.handle(update).getText().equals("Введи канал/группу, дату с, дату по в формате @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45"));
+        Assertions.assertTrue(handler.handle(update).get(0).equals("Введи канал/группу, дату с, дату по в формате @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45"));
 
         update = createUpdate("Классификация; канала; eafd");
         handler.handle(update);
@@ -60,7 +60,7 @@ class ResponseHandlerTest {
     @Test
     void testHandleReturnsWordFromChannel() {
         Update update = createUpdate("Поиск слова на каннале");
-        Assertions.assertTrue(handler.handle(update).getText().equals("Введи слово, канал/группу, дату с, дату по в формате Кино; @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45"));
+        Assertions.assertTrue(handler.handle(update).get(0).equals("Введи слово, канал/группу, дату с, дату по в формате Кино; @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45"));
 
         update = createUpdate("Классификация; канала; eafd");
         handler.handle(update);

@@ -1,6 +1,5 @@
 package com.deutsche.operator.services;
 
-import com.deutsche.operator.enums.GroupsDefinition;
 import com.deutsche.operator.enums.UserErrors;
 import com.deutsche.operator.repo.GroupsRepo;
 import lombok.SneakyThrows;
@@ -8,7 +7,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 @Service
 public class TelegramCommandsService implements CommandsService {
     @Autowired
@@ -34,11 +32,10 @@ public class TelegramCommandsService implements CommandsService {
 
     @SneakyThrows
     @Override
-    public JSONObject getPosts(int userId, String group, int amount) {
+    public Object[] getPosts(int userId, String group, int amount) {
         UserErrors checkUserVar = checkConditionsService.checkUser(userId);
         if (checkUserVar.code < 0){
-            JSONObject error = new JSONObject();
-            error.put("error", checkUserVar.code);
+            String[] error = {"error",  checkUserVar.code + ""};
             return error;
         }
 

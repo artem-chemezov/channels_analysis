@@ -11,12 +11,12 @@ import java.util.function.Function;
 
 @Component
 @NoArgsConstructor
-public class WordFromChannel implements Function<List<String>,String> {
+public class WordFromChannel implements Function<List<String>,List<String>> {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ErrorHandler errorHandler = new ErrorHandlerImpl();
 
     @Override
-    public String apply(List<String> params) {
+    public List<String> apply(List<String> params) {
 
         String userId = params.get(0);
         String word =  params.get(1);
@@ -31,6 +31,6 @@ public class WordFromChannel implements Function<List<String>,String> {
                 + '\n' + " по количеству постов: " + amount
                 + '\n' + '\n' + "Результат = " + answer;
 
-        return errorHandler.handle(message, answer);
+        return List.of(errorHandler.handle(message, answer));
     }
 }
