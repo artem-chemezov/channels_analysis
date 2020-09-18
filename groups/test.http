@@ -1,0 +1,33 @@
+###
+#First test - should be empty
+
+# curl --location --request GET 'http://localhost:8080/mongo/posts'
+GET http://localhost:8080/mongo/posts
+
+###
+#Second will return OK and fill MongoDB
+
+# curl --location --request POST 'http://localhost:8080/mongo/add'
+#--header 'Content-Type: application/x-www-form-urlencoded'
+#--data-urlencode 'name=tproger'
+#--data-urlencode 'amount=2'
+POST http://localhost:8080/mongo/add
+Content-Type: application/x-www-form-urlencoded
+
+name=tproger&amount=2
+
+###
+#Third test - same as first, but return our posts added to database
+
+# curl --location --request GET 'http://localhost:8080/mongo/posts'
+GET http://localhost:8080/mongo/posts
+
+
+###
+
+
+###
+
+
+###
+

@@ -1,12 +1,9 @@
 package com.deutsche.groups.controllers;
 
-import com.deutsche.groups.services.GroupServicePostsGetter;
-import org.json.JSONObject;
+import com.deutsche.groups.dao.VkData;
+import com.deutsche.groups.services.GroupServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,21 +12,21 @@ import java.util.List;
 @RequestMapping("/group")
 public class GroupController {
     @Autowired
-    private GroupServicePostsGetter getterService;
+    private GroupServiceImpl groupServiceImpl;
 
     @GetMapping("/posts")
-    public List<JSONObject> getPosts(@RequestParam("name") String name, @RequestParam("amount") int amount){
-        List<JSONObject> posts = getterService.getPosts(name, amount);
+    public @ResponseBody List<VkData> getPosts(@RequestParam("name") String name, @RequestParam("amount") int amount){
+        List<VkData> posts = groupServiceImpl.getPosts(name, amount);
         //save(posts)
         return posts; // на 4 сервис
     }
 
     @GetMapping("/postsText")
     public List<String> getPostsText(@RequestParam("name") String name, @RequestParam("amount") int amount){
-        List<JSONObject> posts = getterService.getPosts(name, amount);
+        List<VkData> posts = groupServiceImpl.getPosts(name, amount);
         //save(posts)
         List<String> texts = new ArrayList<>();
-        posts.forEach(post -> texts.add(post.get("text").toString()));
+//        posts.forEach(post -> texts.add(post.get("text").toString()));
         return texts;
     }
 
