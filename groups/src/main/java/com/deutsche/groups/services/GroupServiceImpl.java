@@ -1,26 +1,21 @@
 package com.deutsche.groups.services;
 
+import com.deutsche.groups.dao.VkData;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.ServiceActor;
 import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.groups.GroupFull;
-import com.vk.api.sdk.objects.wall.WallpostFull;
 import com.vk.api.sdk.objects.wall.responses.GetResponse;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class GroupServicePostsGetter implements GroupService {
+public class GroupServiceImpl implements GroupService {
     @Autowired
     private ServiceActor actor;
 
@@ -29,7 +24,7 @@ public class GroupServicePostsGetter implements GroupService {
 
     @SneakyThrows
     @Override
-    public List<JSONObject> getPosts(String name, int amount) {
+    public List<VkData> getPosts(String name, int amount) {
         int id = getGroupId(name);
 
         GetResponse getResponse = vk.wall().get(actor)
@@ -37,8 +32,8 @@ public class GroupServicePostsGetter implements GroupService {
                 .count(amount)
                 .execute();
 
-        List<JSONObject> response = new ArrayList<>();
-        getResponse.getItems().forEach(item -> response.add(new JSONObject(item.toString())));
+        List<VkData> response = new ArrayList<>();
+        getResponse.getItems().forEach(item -> response.add(new VkData(item)));
 
         return response;
     }
