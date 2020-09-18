@@ -1,9 +1,10 @@
 package com.deutsche.groups.services;
 
-import org.json.JSONObject;
+
+import com.deutsche.groups.dao.VkData;
 
 import java.util.List;
 
 public interface GroupService {
-    public List<JSONObject> getPosts(String name, int amount);
+    public List<VkData> getPosts(String name, int amount);
 }
