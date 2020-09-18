@@ -24,7 +24,7 @@ public class GroupServiceImpl implements GroupService {
 
     @SneakyThrows
     @Override
-    public List<VkData> getPosts(String name, int amount) {
+    public List<VkData> getPostsByName(String name, int amount) {
         int id = getGroupId(name);
 
         GetResponse getResponse = vk.wall().get(actor)
@@ -38,7 +38,21 @@ public class GroupServiceImpl implements GroupService {
         return response;
     }
 
-    private int getGroupId(String name) throws ClientException, ApiException {
+    @SneakyThrows
+    @Override
+    public List<VkData> getPosts(int groupId, int amount) {
+        GetResponse getResponse = vk.wall().get(actor)
+                .ownerId(-groupId)
+                .count(amount)
+                .execute();
+
+        List<VkData> response = new ArrayList<>();
+        getResponse.getItems().forEach(item -> response.add(new VkData(item)));
+
+        return response;
+    }
+
+    public int getGroupId(String name) throws ClientException, ApiException {
         List<GroupFull> resp = vk.groups().getById(actor).groupId(name).execute();
         return resp.get(0).getId();
     }

@@ -1,12 +1,11 @@
 package com.deutsche.view.tools.methods;
 
-import org.json.JSONObject;
-
+import java.util.List;
 import java.util.function.Function;
 
-public class CategorizeChannel implements Function<JSONObject,String> {
+public class CategorizeChannel implements Function<List<String>,String> {
     @Override
-    public String apply(JSONObject params) {
-        return "Классифицируем канал " + params.get("group");
+    public String apply(List<String> params) {
+        return "Классифицируем канал " + params.get(0);
     }
 }

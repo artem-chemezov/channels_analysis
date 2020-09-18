@@ -29,7 +29,7 @@ public class MongoGroupController {
     @RequestMapping(value = "/add", method=RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public HttpStatus addPosts(String name, int amount) {
-        List<VkData> posts = groupServiceImpl.getPosts(name, amount);
+        List<VkData> posts = groupServiceImpl.getPostsByName(name, amount);
         posts.forEach(post -> mongoGroupRepository.save(post));
         return HttpStatus.OK;
     }
