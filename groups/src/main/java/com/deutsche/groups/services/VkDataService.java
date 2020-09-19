@@ -13,7 +13,8 @@ public interface VkDataService {
     public List<VkDataDao> getPosts(String groupId, int amount) throws ClientException, ApiException;
     public List<VkDataDao> getPostsById(int groupId, int amount);
     public Future<ResponseEntity> addPosts(String name, int amount);
-    public ResponseEntity getRepetitions(String word, String groupId, int amountPosts);
+    public ResponseEntity getRepetitions(String chatId, String word, String groupId, int amountPosts);
+    public ResponseEntity getClassification(String chatId, String groupId, int amountPosts);
     public boolean checkConnection(String groupId);
     public int getGroupId(String name) throws ClientException, ApiException ;
 }

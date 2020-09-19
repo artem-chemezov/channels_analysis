@@ -2,6 +2,7 @@ package com.deutsche.groups.services;
 
 import com.deutsche.groups.dao.VkDataDao;
 import com.deutsche.groups.repositories.MongoGroupRepository;
+import com.deutsche.groups.responses.ClassificationResponse;
 import com.deutsche.groups.responses.WordMatchingResponse;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.ServiceActor;
@@ -11,6 +12,7 @@ import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.wall.responses.GetResponse;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.SerializationUtils;
+import org.json.JSONObject;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
+
+import static com.deutsche.groups.services.Functionality.CLASSIFICATION;
+import static com.deutsche.groups.services.Functionality.REPETITIONS;
 
 @Service
 public class VkDataServiceImpl implements VkDataService {
@@ -77,14 +82,25 @@ public class VkDataServiceImpl implements VkDataService {
     }
 
     @Override
-    public ResponseEntity getRepetitions(String word, String groupId, int amountPosts) {
+    public ResponseEntity getRepetitions(String chatId, String word, String groupId, int amountPosts) {
         if (checkConnection(groupId)) {
-            template.convertAndSend("myVkTasksQueue", new ArrayList(List.of(word, groupId, amountPosts)));
+            template.convertAndSend("myVkTasksQueue", new ArrayList(List.of(REPETITIONS.getName(), chatId, word, groupId, amountPosts)));
             System.out.println("Sended to queue");
             return new ResponseEntity(HttpStatus.OK);
         }
         return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
+
+    @Override
+    public ResponseEntity getClassification(String chatId, String groupId, int amountPosts) {
+        if (checkConnection(groupId)) {
+            template.convertAndSend("myVkTasksQueue", new ArrayList(List.of(chatId, groupId, amountPosts)));
+            System.out.println("Sended to queue");
+            return new ResponseEntity(HttpStatus.OK);
+        }
+        return new ResponseEntity(HttpStatus.BAD_REQUEST);
+    }
+
 
     @Override
     public boolean checkConnection(String groupId) {
@@ -107,13 +123,29 @@ public class VkDataServiceImpl implements VkDataService {
         container.setMessageListener(message -> {
             System.out.println("received from myVkTasksQueue : " + SerializationUtils.deserialize(message.getBody()));
             List tempList = SerializationUtils.deserialize(message.getBody());
-            addPosts((String) tempList.get(1),(Integer) tempList.get(2));
-            //some logic with mongo
-            WordMatchingResponse response = new WordMatchingResponse(50, 150);
-            template.convertAndSend("VkTasksResponseQueue", new ArrayList(List.of(
-                    response.getMatches(),
-                    response.getAllWords()
-            )));
+            if(tempList.get(0).equals(REPETITIONS.getName())) {
+                addPosts((String) tempList.get(3),(Integer) tempList.get(4));
+                //some logic with mongo
+                WordMatchingResponse response = new WordMatchingResponse((String) tempList.get(2),50, 150);
+                JSONObject object = new JSONObject();
+                object.put("functionality", tempList.get(0));
+                object.put("chatId", response.getChatId());
+                object.put("matches", response.getMatches());
+                object.put("allWords", response.getAllWords());
+                template.convertAndSend("VkTasksResponseQueue", object.toString());
+            }
+            else if (tempList.get(0).equals(CLASSIFICATION.getName())) {
+                addPosts((String) tempList.get(2),(Integer) tempList.get(3));
+                //some logic with mongo
+                List<String> classifications = new ArrayList<>();
+                ClassificationResponse response = new ClassificationResponse((String) tempList.get(1), (String) tempList.get(2), classifications);
+                JSONObject object = new JSONObject();
+                object.put("functionality", tempList.get(0).toString());
+                object.put("chatId", response.getChatId());
+                object.put("groupId", response.getGroupId());
+                object.put("classifications", classifications);
+                template.convertAndSend("VkTasksResponseQueue", object.toString());
+            }
         });
     }
 
