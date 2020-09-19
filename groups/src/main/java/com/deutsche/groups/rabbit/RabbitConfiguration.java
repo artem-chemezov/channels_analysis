@@ -2,8 +2,6 @@ package com.deutsche.groups.rabbit;
 
 import org.apache.log4j.Logger;
 import org.springframework.amqp.core.AmqpAdmin;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -55,29 +53,6 @@ public class RabbitConfiguration {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory());
         container.setQueueNames("myVkTasksQueue");
-        container.setMessageListener(new MessageListener() {
-            //тут ловим сообщения из myVkTasksQueue
-            public void onMessage(Message message) {
-                System.out.println("received from myVkTasksQueue : " + message.getBody().toString());
-                //vkDataService.addPosts(groupId, amountPosts);
-            }
-        });
-        return container;
-    }
-
-    //объявляем контейнер, который будет содержать листенер для сообщений
-    @Bean
-    public SimpleMessageListenerContainer messageListenerContainer2() {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory());
-        container.setQueueNames("VkTasksResponseQueue");
-        container.setMessageListener(new MessageListener() {
-            //тут ловим сообщения из VkTasksResponseQueue
-            public void onMessage(Message message) {
-                logger.info("received from VkTasksResponseQueue : " + new String(message.getBody()));
-
-            }
-        });
         return container;
     }
 }

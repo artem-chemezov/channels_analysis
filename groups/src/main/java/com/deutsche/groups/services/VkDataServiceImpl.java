@@ -9,7 +9,10 @@ import com.vk.api.sdk.exceptions.ClientException;
 import com.vk.api.sdk.objects.groups.GroupFull;
 import com.vk.api.sdk.objects.wall.responses.GetResponse;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -61,7 +64,7 @@ public class VkDataServiceImpl implements VkDataService {
     @Override
     public ResponseEntity getRepetitions(String word, String groupId, int amountPosts) {
         if (checkConnection(groupId)) {
-            template.convertAndSend("myVkTasksQueue", List.of(word, groupId, amountPosts));
+            template.convertAndSend("myVkTasksQueue", new ArrayList(List.of(word, groupId, amountPosts)));
             System.out.println("Sended to queue");
             return new ResponseEntity(HttpStatus.OK);
         }
@@ -82,4 +85,15 @@ public class VkDataServiceImpl implements VkDataService {
         List<GroupFull> resp = vk.groups().getById(actor).groupId(name).execute();
         return resp.get(0).getId();
     }
+
+    @Autowired
+    public void messageListenerContainer(SimpleMessageListenerContainer container) {
+        container.setMessageListener(message -> {
+            System.out.println("received from myVkTasksQueue : " + SerializationUtils.deserialize(message.getBody()));
+            List tempList = SerializationUtils.deserialize(message.getBody());
+            addPosts((String) tempList.get(0),(Integer) tempList.get(2));
+            template.convertAndSend("VkTasksResponseQueue", "");
+        });
+    }
+
 }
