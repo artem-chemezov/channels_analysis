@@ -15,10 +15,6 @@ public class GroupsApplication {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(GroupConf.class, args);
-
-//        GroupServiceImpl getter = context.getBean(GroupServiceImpl.class);
-//        var res = getter.getPosts("tproger", 3);
-//        System.out.println(res);
     }
 
 }

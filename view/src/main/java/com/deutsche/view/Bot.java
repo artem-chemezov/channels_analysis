@@ -14,19 +14,18 @@ import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 import javax.annotation.PostConstruct;
 import java.util.List;
 
-
+@Service
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Setter
 @Getter
-@Service
 public class Bot extends TelegramLongPollingBot {
     final int RECONNECT_PAUSE =10000;
 
-    @Value("${bot-username}")
+    @Value("Test_java_09_09_2020_bot")
     private String userName;
-    @Value("${bot-token}")
+    @Value("1335623903:AAHXfpsJqnRkwFSOiuD_rqUWpVgLJ7duMbg")
     private String token;
 
     @Autowired
