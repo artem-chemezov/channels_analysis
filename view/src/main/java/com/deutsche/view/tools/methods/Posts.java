@@ -23,7 +23,7 @@ public class Posts  implements Function<List<String>,List<String>> {
         String amount = params.get(3);
 
         String query = "http://localhost:9090/posts?";
-        query = query + "userId=" + userId + "&chatId=" + chatId + "&group=" + params.get(1) + "&amount=" + params.get(2);
+        query = query + "userId=" + userId + "&chatId=" + chatId + "&group=" + group + "&amount=" + amount;
         System.out.println("url bot: " + query);
         ResponseEntity<VkData[]> answer = restTemplate.getForEntity(query, VkData[].class);
         List<String> messages = new java.util.ArrayList<>(List.of("Ищем по группе: " + group

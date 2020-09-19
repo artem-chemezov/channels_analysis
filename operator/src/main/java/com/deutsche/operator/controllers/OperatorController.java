@@ -32,6 +32,4 @@ public class OperatorController {
         System.out.println("recieved from Bot");
         return commandsService.getClassification(userId, chatId, group, amount);
     }
-
-
 }
