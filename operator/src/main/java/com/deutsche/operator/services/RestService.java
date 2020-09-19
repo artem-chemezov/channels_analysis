@@ -22,13 +22,14 @@ public class RestService {
         return restTemplate.getForObject(query, int.class).intValue();
     }
     
-    public JSONObject repetitions(String word, int groupId, int amount){
+    public Object repetitions(String word, int groupId, int amount){
         JSONObject result = new JSONObject();
         String query = baseUrl + "mongo/repetitions?";
         query += "word=" + word;
         query += "&groupId=" + groupId;
         query += "&amount=" + amount;
-        return restTemplate.getForObject(query, JSONObject.class);
+        ResponseEntity<Object> answer = restTemplate.getForEntity(query, Object.class);
+        return answer.getBody();
     }
 
     @SneakyThrows

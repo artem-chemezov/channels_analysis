@@ -18,12 +18,10 @@ public class TelegramCommandsService implements CommandsService {
 
     @SneakyThrows
     @Override
-    public JSONObject getWordRepetitions(int userId, String word, String group, int amount) {
+    public Object getWordRepetitions(int userId, String word, String group, int amount) {
         UserErrors checkUserVar = checkConditionsService.checkUser(userId);
         if (checkUserVar.code < 0){
-            JSONObject error = new JSONObject();
-            error.put("error", checkUserVar.code);
-            return error;
+            return UserErrors.UNKNOWNUSER;
         }
 
         int groupId = restService.getIdGroupByName(group);
@@ -38,6 +36,8 @@ public class TelegramCommandsService implements CommandsService {
             String[] error = {"error",  checkUserVar.code + ""};
             return error;
         }
+
+
 
         int groupId = restService.getIdGroupByName(group);
         return restService.posts(groupId, amount);

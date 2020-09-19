@@ -2,7 +2,9 @@ package com.deutsche.view.tools.methods;
 
 import com.deutsche.view.errors.ErrorHandler;
 import com.deutsche.view.errors.ErrorHandlerImpl;
+import com.deutsche.view.models.VkRepetition;
 import lombok.NoArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,11 +28,8 @@ public class WordFromChannel implements Function<List<String>,List<String>> {
 
         String query = "http://localhost:9090/posts?";
         query = query + "userId=" + userId + "&word=" + word + "&group=" + group + "&amount=" + amount;
-        int answer = restTemplate.getForObject(query, int.class);
-        String message = "Ищем по группе: " + group
-                + '\n' + " по количеству постов: " + amount
-                + '\n' + '\n' + "Результат = " + answer;
-
-        return List.of(errorHandler.handle(message, answer));
+        ResponseEntity<VkRepetition> answer = restTemplate.getForEntity(query, VkRepetition.class);
+        String message = answer.getBody().toString();
+        return List.of(message);
     }
 }

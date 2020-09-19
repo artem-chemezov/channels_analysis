@@ -15,7 +15,7 @@ public class OperatorController {
 
     @ResponseBody
     @GetMapping("/repetitions")
-    public JSONObject getRepetitions(@RequestParam int userId, @RequestParam String word, @RequestParam String group, @RequestParam int amount){
+    public Object getRepetitions(@RequestParam int userId, @RequestParam String word, @RequestParam String group, @RequestParam int amount){
         return commandsService.getWordRepetitions(userId, word, group, amount);
     }
 
