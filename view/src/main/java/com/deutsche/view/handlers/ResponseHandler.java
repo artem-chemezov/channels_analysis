@@ -2,57 +2,53 @@ package com.deutsche.view.handlers;
 
 import com.deutsche.view.tools.Buttons;
 import com.deutsche.view.tools.Keyboard;
-import com.deutsche.view.tools.KeyboardRows;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 
-import javax.annotation.PostConstruct;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Component
 @NoArgsConstructor
 public class ResponseHandler implements Handler{
-    private Buttons state;
+    //private Buttons state;
     @Autowired
     private Keyboard keyboard;
     private String message;
+    private Map<Long, Buttons> state = new HashMap();
 
-    public SendMessage handle(Update update){
+    public List<SendMessage> handle(Update update){
         message = update.getMessage().getText();
-        SendMessage resultMessage = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
 
         if (message.startsWith("/start")){
+            SendMessage resultMessage = new SendMessage();
             keyboard.setButtons(resultMessage);
             resultMessage.setText("Choose your option!");
-            state = Buttons.DEFAULT;
-            return resultMessage;
+            state.put(chatId, Buttons.DEFAULT);
+            return List.of(resultMessage);
         }
 
         if (Stream.of(Buttons.values()).anyMatch(value -> value.label.equals(message))){
+            SendMessage resultMessage = new SendMessage();
             Optional<Buttons> option = Stream.of(Buttons.values()).filter(value -> value.label.equals(message)).findFirst();
             String result = option.orElse(Buttons.DEFAULT).requiredParams;
-            state = option.orElse(Buttons.DEFAULT);
+            state.put(chatId, option.orElse(Buttons.DEFAULT));
             keyboard.setEmpty(resultMessage);
             resultMessage.setText(result);
-            return resultMessage;
+            return List.of(resultMessage);
         }
 
-        String result = state.onClick.apply(Arrays.asList(message.split(";")));
-        resultMessage.setText(result);
-        state = Buttons.DEFAULT;
-        return resultMessage;
-    }
-
-    @PostConstruct
-    private void setState(){
-        this.state = Buttons.DEFAULT;
+        List<String> params = new ArrayList<>();
+        params.add(update.getMessage().getFrom().getId().toString());
+        params.addAll(Arrays.asList(message.split(";")));
+        List<String> result = state.get(chatId).onClick.apply(params);
+        List<SendMessage> messages = new ArrayList<>();
+        result.forEach(text -> messages.add(new SendMessage().setText(text)));
+        state.put(chatId, Buttons.DEFAULT);
+        return messages;
     }
 }

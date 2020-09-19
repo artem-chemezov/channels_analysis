@@ -9,5 +9,4 @@ import org.springframework.context.annotation.PropertySource;
 @ComponentScan("com.deutsche.view")
 @PropertySource("classpath:application.properties")
 public class ViewConf {
-
 }
