@@ -1,6 +1,6 @@
 package com.deutsche.operator.services;
 
-import com.deutsche.operator.enums.UserErrors;
+import com.deutsche.operator.enums.Status;
 import com.deutsche.operator.repo.GroupsRepo;
 import lombok.SneakyThrows;
 import org.json.JSONObject;
@@ -18,20 +18,32 @@ public class TelegramCommandsService implements CommandsService {
 
     @SneakyThrows
     @Override
-    public Object getWordRepetitions(int userId, String word, String group, int amount) {
-        UserErrors checkUserVar = checkConditionsService.checkUser(userId);
+    public Status getWordRepetitions(int userId, long chatId, String word, String group, int amount) {
+        Status checkUserVar = checkConditionsService.checkUser(userId);
         if (checkUserVar.code < 0){
-            return UserErrors.UNKNOWNUSER;
+            return Status.UNKNOWNUSER;
         }
 
         int groupId = restService.getIdGroupByName(group);
-        return restService.repetitions(word, groupId, amount);
+        return restService.repetitions(chatId, word, groupId, amount);
+    }
+
+    @SneakyThrows
+    @Override
+    public Status getClassification(int userId, long chatId, String group, int amount) {
+        Status checkUserVar = checkConditionsService.checkUser(userId);
+        if (checkUserVar.code < 0){
+            return Status.UNKNOWNUSER;
+        }
+
+        int groupId = restService.getIdGroupByName(group);
+        return restService.classification(chatId, groupId, amount);
     }
 
     @SneakyThrows
     @Override
     public Object[] getPosts(int userId, String group, int amount) {
-        UserErrors checkUserVar = checkConditionsService.checkUser(userId);
+        Status checkUserVar = checkConditionsService.checkUser(userId);
         if (checkUserVar.code < 0){
             String[] error = {"error",  checkUserVar.code + ""};
             return error;

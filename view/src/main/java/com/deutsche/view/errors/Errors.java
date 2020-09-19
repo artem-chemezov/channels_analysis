@@ -9,7 +9,6 @@ public enum Errors {
     UNKNOWNUSER(-2, "Мы не нашли Ваш аккаунт"),
     UNKNOWN(-20, "Неизвестная ошибка");
 
-
     public int code;
     public String message;
 

@@ -1,41 +1,70 @@
 package com.deutsche.operator.services;
 
-import com.deutsche.operator.enums.GroupsDefinition;
+import com.deutsche.operator.enums.Status;
+import com.deutsche.operator.rabbit.RabbitConfiguration;
 import lombok.SneakyThrows;
-import org.json.JSONArray;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
 public class RestService {
-    protected final String baseUrl = "http://localhost:8090/";
+    @Value("${groups.url}")
+    protected String groupsUrl;
+
+    Logger logger = Logger.getLogger(RabbitConfiguration.class);
+    @Autowired
+    private SimpleMessageListenerContainer simpleMessageListenerContainer;
 
     @Autowired
     private RestTemplate restTemplate;
 
     public int getIdGroupByName(String name){
-        String query = baseUrl + "group/getId?";
+        String query = groupsUrl + "group/getId?";
         query = query + "name=" + name;
         return restTemplate.getForObject(query, int.class).intValue();
     }
     
-    public Object repetitions(String word, int groupId, int amount){
+    public Status repetitions(long chatId, String word, int groupId, int amount){
         JSONObject result = new JSONObject();
-        String query = baseUrl + "mongo/repetitions?";
-        query += "word=" + word;
+        String query = groupsUrl + "mongo/repetitions?";
+        query += "chatId=" + chatId;
+        query += "&word=" + word;
         query += "&groupId=" + groupId;
-        query += "&amount=" + amount;
-        ResponseEntity<Object> answer = restTemplate.getForEntity(query, Object.class);
-        return answer.getBody();
+        query += "&amountPosts=" + amount;
+        System.out.println("url operator-mongo repetitions: " + query);
+        ResponseEntity answer = restTemplate.getForEntity(query, Object.class);
+        if (answer.getStatusCode() == HttpStatus.OK) {
+            return Status.ADDEDTOQUEUE;
+        }
+        return Status.CONNECTIONERROR;
+    }
+
+
+    public Status classification(long chatId, int groupId, int amount){
+        JSONObject result = new JSONObject();
+        String query = groupsUrl + "mongo/classification?";
+        query += "chatId=" + chatId;
+        query += "&groupId=" + groupId;
+        query += "&amountPosts=" + amount;
+        System.out.println("url operator-mongo repetitions: " + query);
+        ResponseEntity answer = restTemplate.getForEntity(query, Object.class);
+        if (answer.getStatusCode() == HttpStatus.OK) {
+            return Status.ADDEDTOQUEUE;
+        }
+        return Status.CONNECTIONERROR;
     }
 
     @SneakyThrows
     public Object[] posts(int groupId, int amount){
         JSONObject result = new JSONObject();
-        String query = baseUrl + "group/postsById?";
+        String query = groupsUrl + "group/postsById?";
         query += "groupId=" + groupId;
         query += "&amount=" + amount;
         System.out.println("postsURL: " + query);
@@ -43,17 +72,11 @@ public class RestService {
         return answer.getBody();
     }
 
-    public int clasify(String word, int groupId, GroupsDefinition groupDefinition){
+    public int clasify(String word, int groupId){
         JSONObject result = new JSONObject();
-        if (groupDefinition == GroupsDefinition.UNSAVED){
-            String query = baseUrl + "mongo/repetitions/";
-            query += "word=" + word;
-            query += "&groupId=" + groupId;
-            return restTemplate.getForObject(query, int.class);
-        }
-        if(groupDefinition == GroupsDefinition.SAVED){
-            return -30;
-        }
-        return -30;
+        String query = groupsUrl + "mongo/repetitions/";
+        query += "word=" + word;
+        query += "&groupId=" + groupId;
+        return restTemplate.getForObject(query, int.class);
     }
 }

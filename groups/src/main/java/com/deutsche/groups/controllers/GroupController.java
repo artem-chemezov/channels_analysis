@@ -30,7 +30,7 @@ public class GroupController {
     }
 
     @GetMapping("/postsById")
-    public @ResponseBody List<VkDataDao> getPosts(@RequestParam("groupId") int groupId, @RequestParam("amount") int amount){
+    public @ResponseBody List<VkDataDao> getPostsById(@RequestParam("groupId") int groupId, @RequestParam("amount") int amount){
         List<VkDataDao> posts = vkDataService.getPostsById(groupId, amount);
         return posts; // на 4 сервис
     }

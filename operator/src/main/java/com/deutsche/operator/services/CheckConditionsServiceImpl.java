@@ -1,6 +1,6 @@
 package com.deutsche.operator.services;
 
-import com.deutsche.operator.enums.UserErrors;
+import com.deutsche.operator.enums.Status;
 import com.deutsche.operator.enums.GroupsDefinition;
 import com.deutsche.operator.models.User;
 import com.deutsche.operator.repo.GroupsRepo;
@@ -17,16 +17,16 @@ public class CheckConditionsServiceImpl implements CheckConditionsService {
     @Autowired
     private RestService restService;
     @Override
-    public UserErrors checkUser(int userId) {
+    public Status checkUser(int userId) {
         userRepo.save(new User(userId, true));
         User user = userRepo.findByUserId(userId);
         if (user == null) {
-            return UserErrors.UNKNOWNUSER;
+            return Status.UNKNOWNUSER;
         }
         if (!user.isPaid()){
-            return UserErrors.ISNOTPAIDUSER;
+            return Status.ISNOTPAIDUSER;
         }
-        return UserErrors.DEFAULT;
+        return Status.DEFAULT;
     }
 
     @Override

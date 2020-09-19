@@ -44,7 +44,9 @@ public class ResponseHandler implements Handler{
 
         List<String> params = new ArrayList<>();
         params.add(update.getMessage().getFrom().getId().toString());
-        params.addAll(Arrays.asList(message.split(";")));
+        params.add(update.getMessage().getChatId().toString());
+        List<String> splits = Arrays.asList(message.split(";"));
+        splits.forEach(split -> params.add(split.strip()));
         List<String> result = state.get(chatId).onClick.apply(params);
         List<SendMessage> messages = new ArrayList<>();
         result.forEach(text -> messages.add(new SendMessage().setText(text)));

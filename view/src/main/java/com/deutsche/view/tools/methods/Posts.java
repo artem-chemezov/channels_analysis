@@ -18,18 +18,24 @@ public class Posts  implements Function<List<String>,List<String>> {
     @Override
     public List<String> apply(List<String> params) {
         String userId = params.get(0);
-        String group = params.get(1);
-        String amount = params.get(2);
+        String chatId = params.get(1);
+        String group = params.get(2);
+        String amount = params.get(3);
 
         String query = "http://localhost:9090/posts?";
-        query = query + "userId=" + userId + "&group=" + params.get(1) + "&amount=" + params.get(2);
+        query = query + "userId=" + userId + "&chatId=" + chatId + "&group=" + params.get(1) + "&amount=" + params.get(2);
         System.out.println("url bot: " + query);
         ResponseEntity<VkData[]> answer = restTemplate.getForEntity(query, VkData[].class);
         List<String> messages = new java.util.ArrayList<>(List.of("Ищем по группе: " + group
                 + '\n' + " по количеству постов: " + amount
                 + '\n' + '\n' + "Результат: " + '\n'));
-        Arrays.stream(answer.getBody()).forEach(value -> messages.add(value.toString()));
-
-        return messages;
+        try {
+            Arrays.stream(answer.getBody()).forEach(value -> messages.add(value.toString()));
+            return messages;
+        }
+        catch (Exception ex){
+            String message ="Во время запроса произошла ошибка :(";
+            return List.of(message);
+        }
     }
 }
