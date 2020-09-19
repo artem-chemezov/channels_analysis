@@ -1,6 +1,6 @@
 package com.deutsche.groups.services;
 
-import com.deutsche.groups.dao.VkData;
+import com.deutsche.groups.dao.VkDataDao;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.ServiceActor;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -24,30 +24,14 @@ public class GroupServiceImpl implements GroupService {
 
     @SneakyThrows
     @Override
-    public List<VkData> getPostsByName(String name, int amount) {
-        int id = getGroupId(name);
-
-        GetResponse getResponse = vk.wall().get(actor)
-                .ownerId(-id)
-                .count(amount)
-                .execute();
-
-        List<VkData> response = new ArrayList<>();
-        getResponse.getItems().forEach(item -> response.add(new VkData(item)));
-
-        return response;
-    }
-
-    @SneakyThrows
-    @Override
-    public List<VkData> getPostsById(int groupId, int amount) {
+    public List<VkDataDao> getPostsById(int groupId, int amount) {
         GetResponse getResponse = vk.wall().get(actor)
                 .ownerId(-groupId)
                 .count(amount)
                 .execute();
 
-        List<VkData> response = new ArrayList<>();
-        getResponse.getItems().forEach(item -> response.add(new VkData(item)));
+        List<VkDataDao> response = new ArrayList<>();
+        getResponse.getItems().forEach(item -> response.add(new VkDataDao(item)));
 
         return response;
     }

@@ -35,7 +35,7 @@ public class RestService {
     @SneakyThrows
     public Object[] posts(int groupId, int amount){
         JSONObject result = new JSONObject();
-        String query = baseUrl + "group/posts?";
+        String query = baseUrl + "group/postsById?";
         query += "groupId=" + groupId;
         query += "&amount=" + amount;
         System.out.println("postsURL: " + query);

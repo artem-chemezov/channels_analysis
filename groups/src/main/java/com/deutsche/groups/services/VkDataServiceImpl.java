@@ -51,6 +51,20 @@ public class VkDataServiceImpl implements VkDataService {
 
     @SneakyThrows
     @Override
+    public List<VkDataDao> getPostsById(int groupId, int amount) {
+        GetResponse getResponse = vk.wall().get(actor)
+                .ownerId(-groupId)
+                .count(amount)
+                .execute();
+
+        List<VkDataDao> response = new ArrayList<>();
+        getResponse.getItems().forEach(item -> response.add(new VkDataDao(item)));
+
+        return response;
+    }
+
+    @SneakyThrows
+    @Override
     @Async
     public Future<ResponseEntity> addPosts(String name, int amount) {
         List<VkDataDao> posts = getPosts(name, amount);
