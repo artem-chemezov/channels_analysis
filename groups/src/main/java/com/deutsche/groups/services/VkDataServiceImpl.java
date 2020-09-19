@@ -2,6 +2,7 @@ package com.deutsche.groups.services;
 
 import com.deutsche.groups.dao.VkDataDao;
 import com.deutsche.groups.repositories.MongoGroupRepository;
+import com.deutsche.groups.responses.WordMatchingResponse;
 import com.vk.api.sdk.client.VkApiClient;
 import com.vk.api.sdk.client.actors.ServiceActor;
 import com.vk.api.sdk.exceptions.ApiException;
@@ -106,8 +107,13 @@ public class VkDataServiceImpl implements VkDataService {
         container.setMessageListener(message -> {
             System.out.println("received from myVkTasksQueue : " + SerializationUtils.deserialize(message.getBody()));
             List tempList = SerializationUtils.deserialize(message.getBody());
-            addPosts((String) tempList.get(0),(Integer) tempList.get(2));
-            template.convertAndSend("VkTasksResponseQueue", "");
+            addPosts((String) tempList.get(1),(Integer) tempList.get(2));
+            //some logic with mongo
+            WordMatchingResponse response = new WordMatchingResponse(50, 150);
+            template.convertAndSend("VkTasksResponseQueue", new ArrayList(List.of(
+                    response.getMatches(),
+                    response.getAllWords()
+            )));
         });
     }
 
