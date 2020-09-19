@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="groups" />
         <module name="view" />
+        <module name="operator" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

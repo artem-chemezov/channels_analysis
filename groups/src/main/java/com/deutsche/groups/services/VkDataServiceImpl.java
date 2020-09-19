@@ -92,7 +92,8 @@ public class VkDataServiceImpl implements VkDataService {
         }
     }
 
-    private int getGroupId(String name) throws ClientException, ApiException {
+    @Override
+    public int getGroupId(String name) throws ClientException, ApiException {
         List<GroupFull> resp = vk.groups().getById(actor).groupId(name).execute();
         return resp.get(0).getId();
     }

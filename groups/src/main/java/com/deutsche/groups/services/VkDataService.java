@@ -15,4 +15,5 @@ public interface VkDataService {
     public Future<ResponseEntity> addPosts(String name, int amount);
     public ResponseEntity getRepetitions(String word, String groupId, int amountPosts);
     public boolean checkConnection(String groupId);
+    public int getGroupId(String name) throws ClientException, ApiException ;
 }
