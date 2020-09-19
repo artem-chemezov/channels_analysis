@@ -1,11 +1,12 @@
 package com.deutsche.groups.controllers;
 
-import com.deutsche.groups.dao.VkData;
+import com.deutsche.groups.dao.VkDataDao;
 import com.deutsche.groups.repositories.MongoGroupRepository;
-import com.deutsche.groups.services.GroupServiceImpl;
+import com.deutsche.groups.services.VkDataService;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,20 +19,25 @@ public class MongoGroupController {
     MongoGroupRepository mongoGroupRepository;
 
     @Autowired
-    private GroupServiceImpl groupServiceImpl;
+    private VkDataService vkDataService;
 
     @GetMapping("/posts")
-    public @ResponseBody List<VkData> getPosts(){
-        List<VkData> posts = mongoGroupRepository.findAll();
+    @ResponseBody
+    public List<VkDataDao> getPosts(){
+        List<VkDataDao> posts = mongoGroupRepository.findAll();
         return posts; // на 4 сервис
     }
 
+    @SneakyThrows
     @RequestMapping(value = "/add", method=RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public HttpStatus addPosts(String name, int amount) {
-        List<VkData> posts = groupServiceImpl.getPosts(name, amount);
-        posts.forEach(post -> mongoGroupRepository.save(post));
-        return HttpStatus.OK;
+    public ResponseEntity addPosts(String name, int amount) {
+        return vkDataService.addPosts(name, amount).get();
+    }
+
+    @GetMapping("/repetitions")
+    public ResponseEntity getRepetitions(String word, String groupId, int amountPosts) {
+        return vkDataService.getRepetitions(word, groupId, amountPosts);
     }
 
 }

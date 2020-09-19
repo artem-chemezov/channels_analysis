@@ -13,7 +13,7 @@ import java.math.BigInteger;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class VkData {
+public class VkDataDao {
 
     @Id
     private String id;
@@ -22,7 +22,7 @@ public class VkData {
     private String text;
     private BigInteger owner_id;
 
-    public VkData (WallpostFull post) {
+    public VkDataDao(WallpostFull post) {
         this.date = BigInteger.valueOf(post.getDate());
         this.text = post.getText();
         this.owner_id = BigInteger.valueOf(post.getOwnerId());
