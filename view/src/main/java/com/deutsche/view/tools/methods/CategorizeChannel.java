@@ -17,8 +17,11 @@ public class CategorizeChannel implements Function<List<String>,List<String>> {
     public List<String> apply(List<String> params) {
         String userId = params.get(0);
         String chatId = params.get(1);
-        String group = params.get(3);
-        String amount = params.get(4);
+        String group = params.get(2);
+        String amount = "25";
+        if (params.size() == 4) {
+            amount = params.get(3);
+        }
 
         String query = "http://localhost:9090/classification?";
         query = query + "userId=" + userId + "&chatId=" + chatId + "&group=" + group + "&amount=" + amount;
