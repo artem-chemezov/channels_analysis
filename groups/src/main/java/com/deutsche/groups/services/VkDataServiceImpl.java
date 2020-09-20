@@ -24,10 +24,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 
-import static com.deutsche.groups.services.Functionality.CLASSIFICATION;
-import static com.deutsche.groups.services.Functionality.REPETITIONS;
+import static com.deutsche.groups.infoobjects.Functionality.CLASSIFICATION;
+import static com.deutsche.groups.infoobjects.Functionality.REPETITIONS;
 
 @Service
 public class VkDataServiceImpl implements VkDataService {
@@ -96,7 +97,7 @@ public class VkDataServiceImpl implements VkDataService {
     @Override
     public ResponseEntity getClassification(String chatId, String groupId, int amountPosts) {
         if (checkConnection(groupId)) {
-            template.convertAndSend("myVkTasksQueue", new ArrayList(List.of(chatId, groupId, amountPosts)));
+            template.convertAndSend("myVkTasksQueue", new ArrayList(List.of(CLASSIFICATION.getName(), chatId, groupId, amountPosts)));
             System.out.println("Sended to queue");
             return new ResponseEntity(HttpStatus.OK);
         }
@@ -149,8 +150,11 @@ public class VkDataServiceImpl implements VkDataService {
                 template.convertAndSend("VkTasksResponseQueue", object.toString());
             } else if (tempList.get(0).equals(CLASSIFICATION.getName())) {
                 addPosts((String) tempList.get(2), (Integer) tempList.get(3));
-                //some logic with mongo
-                List<String> classifications = new ArrayList<>();
+
+                Map<String,Double> classifications = mongoMatcherService.findClassification(
+                        getGroupId((String) tempList.get(2)),
+                        (Integer) tempList.get(3));
+
                 ClassificationResponse response = new ClassificationResponse((String) tempList.get(1), (String) tempList.get(2), classifications);
                 JSONObject object = new JSONObject();
                 object.put("functionality", tempList.get(0).toString());

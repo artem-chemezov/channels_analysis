@@ -1,4 +1,4 @@
-package com.deutsche.groups.services;
+package com.deutsche.groups.infoobjects;
 
 import lombok.Getter;
 
