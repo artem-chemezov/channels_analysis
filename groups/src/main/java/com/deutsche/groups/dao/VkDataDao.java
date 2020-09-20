@@ -23,6 +23,7 @@ public class VkDataDao {
     private BigInteger owner_id;
 
     public VkDataDao(WallpostFull post) {
+        this.id = post.getOwnerId() + "_" + post.getId();
         this.date = BigInteger.valueOf(post.getDate());
         this.text = post.getText();
         this.owner_id = BigInteger.valueOf(post.getOwnerId());

@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -36,13 +37,22 @@ public class VkDataServiceImpl implements VkDataService {
     private final AmqpTemplate template;
     private final MongoGroupRepository mongoGroupRepository;
     private final MongoMatcherService mongoMatcherService;
+    private final MongoTemplate mongoTemplate;
 
-    public VkDataServiceImpl(ServiceActor actor, VkApiClient vk, AmqpTemplate template, MongoGroupRepository mongoGroupRepository, MongoMatcherService mongoMatcherService) {
+    public VkDataServiceImpl(
+            ServiceActor actor,
+            VkApiClient vk,
+            AmqpTemplate template,
+            MongoGroupRepository mongoGroupRepository,
+            MongoMatcherService mongoMatcherService,
+            MongoTemplate mongoTemplate
+    ) {
         this.actor = actor;
         this.vk = vk;
         this.template = template;
         this.mongoGroupRepository = mongoGroupRepository;
         this.mongoMatcherService = mongoMatcherService;
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Override
@@ -86,7 +96,7 @@ public class VkDataServiceImpl implements VkDataService {
     @Async
     public Future<ResponseEntity> addPosts(String name, int amount) {
         List<VkDataDao> posts = getPosts(name, amount);
-        posts.forEach(post -> mongoGroupRepository.save(post));
+        posts.forEach(mongoGroupRepository::save);
         return AsyncResult.forValue(new ResponseEntity(HttpStatus.OK));
     }
 
