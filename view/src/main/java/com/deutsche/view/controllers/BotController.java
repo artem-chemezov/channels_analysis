@@ -21,7 +21,7 @@ public class BotController {
     public String queueRepetitions(@RequestBody String message){
         SendMessage sendMessage = new SendMessage();
         JSONObject jsonMessage = new JSONObject(message);
-        sendMessage.setChatId(Long.parseLong(jsonMessage.get("chatId").toString()));
+        sendMessage.setChatId(Long.parseLong(jsonMessage.get("chatId").toString())); //244520472
         System.out.println(message);
         Optional<Functionality> functionalityMessage = Arrays.stream(Functionality.values()).filter(value -> value.name == jsonMessage.get("functionality")).findFirst();
         sendMessage.setText(functionalityMessage.get().processMessage.apply(jsonMessage));
