@@ -7,6 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class WordMatchingResponse {
     private String chatId;
+    private String word;
     private int matches;
     private int allWords;
 }

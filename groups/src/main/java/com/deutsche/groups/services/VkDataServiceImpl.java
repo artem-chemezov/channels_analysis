@@ -46,7 +46,7 @@ public class VkDataServiceImpl implements VkDataService {
     }
 
     @Override
-    public List<VkDataDao> getPosts(String groupId, int amount)  throws ClientException, ApiException {
+    public List<VkDataDao> getPosts(String groupId, int amount) throws ClientException, ApiException {
         int id = getGroupId(groupId);
 
         GetResponse getResponse = vk.wall().get(actor)
@@ -114,8 +114,9 @@ public class VkDataServiceImpl implements VkDataService {
         }
     }
 
+    @SneakyThrows
     @Override
-    public int getGroupId(String name) throws ClientException, ApiException {
+    public int getGroupId(String name){
         List<GroupFull> resp = vk.groups().getById(actor).groupId(name).execute();
         return resp.get(0).getId();
     }
@@ -125,21 +126,29 @@ public class VkDataServiceImpl implements VkDataService {
         container.setMessageListener(message -> {
             System.out.println("received from myVkTasksQueue : " + SerializationUtils.deserialize(message.getBody()));
             List tempList = SerializationUtils.deserialize(message.getBody());
-            if(tempList.get(0).equals(REPETITIONS.getName())) {
-                addPosts((String) tempList.get(3),(Integer) tempList.get(4));
+            if (tempList.get(0).equals(REPETITIONS.getName())) {
+                addPosts((String) tempList.get(3), (Integer) tempList.get(4));
 
-                mongoMatcherService.findSumOfWords();
+                List<Integer> answerWords = mongoMatcherService.findSumOfWords(
+                        (String) tempList.get(2),
+                        getGroupId((String) tempList.get(3)),
+                        (int) tempList.get(4));
 
-                WordMatchingResponse response = new WordMatchingResponse((String) tempList.get(1),50, 150);
+                WordMatchingResponse response = new WordMatchingResponse(
+                        (String) tempList.get(1),
+                        (String) tempList.get(2),
+                        answerWords.get(0),
+                        answerWords.get(1));
+
                 JSONObject object = new JSONObject();
                 object.put("functionality", tempList.get(0));
                 object.put("chatId", response.getChatId());
+                object.put("word", response.getWord());
                 object.put("matches", response.getMatches());
                 object.put("allWords", response.getAllWords());
                 template.convertAndSend("VkTasksResponseQueue", object.toString());
-            }
-            else if (tempList.get(0).equals(CLASSIFICATION.getName())) {
-                addPosts((String) tempList.get(2),(Integer) tempList.get(3));
+            } else if (tempList.get(0).equals(CLASSIFICATION.getName())) {
+                addPosts((String) tempList.get(2), (Integer) tempList.get(3));
                 //some logic with mongo
                 List<String> classifications = new ArrayList<>();
                 ClassificationResponse response = new ClassificationResponse((String) tempList.get(1), (String) tempList.get(2), classifications);
