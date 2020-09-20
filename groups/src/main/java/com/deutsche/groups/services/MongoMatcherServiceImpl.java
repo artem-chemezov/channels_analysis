@@ -3,6 +3,7 @@ package com.deutsche.groups.services;
 import com.deutsche.groups.dao.VkDataDao;
 import com.deutsche.groups.infoobjects.ClassificationGroup;
 import com.deutsche.groups.repositories.MongoGroupRepository;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -40,11 +41,11 @@ public class MongoMatcherServiceImpl implements MongoMatcherService {
     }
 
     @Override
-    public Map<String,Double> findClassification(int groupId, int amountPosts) {
+    public JSONObject findClassification(int groupId, int amountPosts) {
         Query query = new Query();
         query.addCriteria(Criteria.where("owner_id").is(String.valueOf(-groupId)));
         List<VkDataDao> users = mongoTemplate.find(query, VkDataDao.class).stream().limit(amountPosts).collect(Collectors.toList());
-        Map<String,Double> result = new HashMap<>();
+        JSONObject result = new JSONObject();
         ClassificationGroup[] categories = ClassificationGroup.values();
         for (ClassificationGroup category:categories) {
 
@@ -59,7 +60,10 @@ public class MongoMatcherServiceImpl implements MongoMatcherService {
                         .reduce(Integer::sum)
                         .orElse(0);
             }
-            result.put(category.getCategory(), (double) (sumOfAllClueWords/sumOfAllWords));
+            result.put(category.getCategory(), new JSONObject()
+                    .put("clueWords", sumOfAllClueWords)
+                    .put("allWords", sumOfAllWords));
+            //result.put(category.getCategory(), Map.of(sumOfAllClueWords, sumOfAllWords));
         }
         return result;
     }

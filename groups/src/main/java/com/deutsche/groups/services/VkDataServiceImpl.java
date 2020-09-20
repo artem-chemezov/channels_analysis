@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Future;
 
 import static com.deutsche.groups.infoobjects.Functionality.CLASSIFICATION;
@@ -158,7 +157,7 @@ public class VkDataServiceImpl implements VkDataService {
             } else if (tempList.get(0).equals(CLASSIFICATION.getName())) {
                 addPosts((String) tempList.get(2), (Integer) tempList.get(3));
 
-                Map<String,Double> classifications = mongoMatcherService.findClassification(
+                JSONObject classifications = mongoMatcherService.findClassification(
                         getGroupId((String) tempList.get(2)),
                         (Integer) tempList.get(3));
 

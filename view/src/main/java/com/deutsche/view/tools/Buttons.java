@@ -22,7 +22,7 @@ public enum Buttons {
     //STATISTICS("Статистика", "Введи канал/группу, дату с, дату по в формате @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45", new Statistics()),
     POSTS("Почитать посты", "Введите id группы, количество постов в формате: groupId,50", new Posts());
 
-    public static String examples = "Примеры групп:\n\n" +
+    private static String examples = "\nПримеры групп:\n" +
             "Типичный программист: tproger\n" +
             "Хабрахабр: habrfun\n" +
             "Лентач: lentach";
