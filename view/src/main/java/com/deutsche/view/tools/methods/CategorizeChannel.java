@@ -4,6 +4,7 @@ import com.deutsche.view.errors.ErrorHandler;
 import com.deutsche.view.errors.ErrorHandlerImpl;
 import com.deutsche.view.errors.Status;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -26,7 +27,13 @@ public class CategorizeChannel implements Function<List<String>,List<String>> {
         String query = "http://localhost:9090/classification?";
         query = query + "userId=" + userId + "&chatId=" + chatId + "&group=" + group + "&amount=" + amount;
         System.out.println(query);
-        ResponseEntity<Status> answer = restTemplate.getForEntity(query, Status.class);
+        ResponseEntity<Status> answer;
+        try{
+            answer = restTemplate.getForEntity(query, Status.class);
+        }
+        catch (HttpServerErrorException ex){
+            return List.of("Введено некорректное имя группы");
+        }
         System.out.println("answer from operator: " + answer.getBody().message);
         return List.of(errorHandler.handle(answer.getBody()));
     }

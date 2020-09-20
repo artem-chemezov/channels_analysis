@@ -31,12 +31,12 @@ public class RestService {
         return restTemplate.getForObject(query, int.class).intValue();
     }
     
-    public Status repetitions(long chatId, String word, int groupId, int amount){
+    public Status repetitions(long chatId, String word, String groupName, int amount){
         JSONObject result = new JSONObject();
         String query = groupsUrl + "mongo/repetitions?";
         query += "chatId=" + chatId;
         query += "&word=" + word;
-        query += "&groupId=" + groupId;
+        query += "&groupId=" + groupName;
         query += "&amountPosts=" + amount;
         System.out.println("url operator-mongo repetitions: " + query);
         ResponseEntity answer = restTemplate.getForEntity(query, Object.class);

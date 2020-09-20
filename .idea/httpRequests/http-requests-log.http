@@ -1,0 +1,35 @@
+POST http://localhost:8081/queue
+Content-Type: application/x-www-form-urlencoded
+
+name=tproger&amount=2
+
+###
+
+POST http://localhost:8080/queue
+Content-Type: application/x-www-form-urlencoded
+
+name=tproger&amount=2
+
+###
+
+POST http://localhost:8080/queue
+Content-Type: application/x-www-form-urlencoded
+
+name=tproger&amount=2
+
+###
+
+POST http://localhost:8080/queue
+Content-Type: application/x-www-form-urlencoded
+
+name=tproger&amount=2
+
+###
+
+POST http://localhost:8080/queue
+Content-Type: application/x-www-form-urlencoded
+
+name=tproger&amount=2
+
+###
+

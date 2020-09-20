@@ -24,8 +24,8 @@ public class TelegramCommandsService implements CommandsService {
             return Status.UNKNOWNUSER;
         }
 
-        int groupId = restService.getIdGroupByName(group);
-        return restService.repetitions(chatId, word, groupId, amount);
+        //int groupId = restService.getIdGroupByName(group);
+        return restService.repetitions(chatId, word, group, amount);
     }
 
     @SneakyThrows

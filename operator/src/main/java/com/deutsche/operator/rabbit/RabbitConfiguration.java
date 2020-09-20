@@ -59,10 +59,13 @@ public class RabbitConfiguration {
         container.setMessageListener(new MessageListener() {
             //тут ловим сообщения из VkTasksResponseQueue
             public void onMessage(Message message) {
-                logger.info("received from VkTasksResponseQueue : " + new String(message.getBody()));
+                RestTemplate restTemplate2 = new RestTemplate();
                 String query = botUrl + "queue";
-                String answer = restTemplate.postForObject(query, message, String.class);
-                logger.info("received from TelegramBot : " + answer);
+                String answerFromQueue =  new String(message.getBody());
+                System.out.println("received from VkTasksResponseQueue : " + answerFromQueue);
+                System.out.println(query);
+                String answer = restTemplate2.postForObject(query, answerFromQueue, String.class);
+                System.out.println("received from TelegramBot : " + answer);
             }
         });
         return container;

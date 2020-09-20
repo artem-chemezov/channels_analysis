@@ -1,0 +1,24 @@
+<changelist name="Uncommitted_changes_before_Merge_at_20_09_2020_4_24_[Default_Changelist]" date="1600565076040" recycled="true" deleted="true">
+  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Merge_at_20_09_2020_4_24_[Default_Changelist]/shelved.patch" />
+  <option name="DESCRIPTION" value="Uncommitted changes before Merge at 20.09.2020 4:24 [Default Changelist]" />
+  <binary>
+    <option name="BEFORE_PATH" value="view/target/classes/com/deutsche/view/tools/methods/WordFromChannel.class" />
+    <option name="AFTER_PATH" value="view/target/classes/com/deutsche/view/tools/methods/WordFromChannel.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Merge_at_20_09_2020_4_24_[Default_Changelist]/WordFromChannel.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="view/target/classes/com/deutsche/view/controllers/BotController.class" />
+    <option name="AFTER_PATH" value="view/target/classes/com/deutsche/view/controllers/BotController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Merge_at_20_09_2020_4_24_[Default_Changelist]/BotController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="view/target/classes/com/deutsche/view/BotApp.class" />
+    <option name="AFTER_PATH" value="view/target/classes/com/deutsche/view/BotApp.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Merge_at_20_09_2020_4_24_[Default_Changelist]/BotApp.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="view/target/classes/com/deutsche/view/Bot.class" />
+    <option name="AFTER_PATH" value="view/target/classes/com/deutsche/view/Bot.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Merge_at_20_09_2020_4_24_[Default_Changelist]/Bot.class" />
+  </binary>
+</changelist>

@@ -6,6 +6,7 @@ import com.deutsche.view.errors.Status;
 import lombok.NoArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -30,7 +31,13 @@ public class WordFromChannel implements Function<List<String>,List<String>> {
         String query = "http://localhost:9090/repetitions?";
         query = query + "userId=" + userId + "&chatId=" + chatId + "&word=" + word + "&group=" + group + "&amount=" + amount;
         System.out.println(query);
-        ResponseEntity<Status> answer = restTemplate.getForEntity(query, Status.class);
+        ResponseEntity<Status> answer;
+        try{
+            answer = restTemplate.getForEntity(query, Status.class);
+        }
+        catch (HttpServerErrorException ex){
+            return List.of("Введено некорректное имя группы");
+        }
         System.out.println("answer from operator: " + answer.getBody().message);
         return List.of(errorHandler.handle(answer.getBody()));
     }

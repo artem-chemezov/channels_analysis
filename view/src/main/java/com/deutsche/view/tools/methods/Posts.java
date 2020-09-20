@@ -4,6 +4,7 @@ import com.deutsche.view.errors.ErrorHandler;
 import com.deutsche.view.errors.ErrorHandlerImpl;
 import com.deutsche.view.models.VkData;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
@@ -25,7 +26,13 @@ public class Posts  implements Function<List<String>,List<String>> {
         String query = "http://localhost:9090/posts?";
         query = query + "userId=" + userId + "&chatId=" + chatId + "&group=" + group + "&amount=" + amount;
         System.out.println("url bot: " + query);
-        ResponseEntity<VkData[]> answer = restTemplate.getForEntity(query, VkData[].class);
+        ResponseEntity<VkData[]> answer;
+        try{
+            answer = restTemplate.getForEntity(query, VkData[].class);
+        }
+        catch (HttpServerErrorException ex){
+            return List.of("Введено некорректное имя группы");
+        }
         List<String> messages = new java.util.ArrayList<>(List.of("Ищем по группе: " + group
                 + '\n' + " по количеству постов: " + amount
                 + '\n' + '\n' + "Результат: " + '\n'));

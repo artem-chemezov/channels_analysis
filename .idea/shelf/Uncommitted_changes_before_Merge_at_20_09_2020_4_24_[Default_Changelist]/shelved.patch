@@ -1,0 +1,1242 @@
+Index: view/src/main/java/com/deutsche/view/tools/methods/Posts.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.view.tools.methods;\r\n\r\nimport com.deutsche.view.errors.ErrorHandler;\r\nimport com.deutsche.view.errors.ErrorHandlerImpl;\r\nimport com.deutsche.view.models.VkData;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.web.client.RestTemplate;\r\n\r\nimport java.util.Arrays;\r\nimport java.util.List;\r\nimport java.util.function.Function;\r\n\r\npublic class Posts  implements Function<List<String>,List<String>> {\r\n    private final RestTemplate restTemplate = new RestTemplate();\r\n    private final ErrorHandler errorHandler = new ErrorHandlerImpl();\r\n\r\n\r\n    @Override\r\n    public List<String> apply(List<String> params) {\r\n        String userId = params.get(0);\r\n        String chatId = params.get(1);\r\n        String group = params.get(2);\r\n        String amount = params.get(3);\r\n\r\n        String query = \"http://localhost:9090/posts?\";\r\n        query = query + \"userId=\" + userId + \"&chatId=\" + chatId + \"&group=\" + group + \"&amount=\" + amount;\r\n        System.out.println(\"url bot: \" + query);\r\n        ResponseEntity<VkData[]> answer = restTemplate.getForEntity(query, VkData[].class);\r\n        List<String> messages = new java.util.ArrayList<>(List.of(\"Ищем по группе: \" + group\r\n                + '\\n' + \" по количеству постов: \" + amount\r\n                + '\\n' + '\\n' + \"Результат: \" + '\\n'));\r\n        try {\r\n            Arrays.stream(answer.getBody()).forEach(value -> messages.add(value.toString()));\r\n            return messages;\r\n        }\r\n        catch (Exception ex){\r\n            String message =\"Во время запроса произошла ошибка :(\";\r\n            return List.of(message);\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/tools/methods/Posts.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/java/com/deutsche/view/tools/methods/Posts.java	(date 1600564741963)
+@@ -4,6 +4,7 @@
+ import com.deutsche.view.errors.ErrorHandlerImpl;
+ import com.deutsche.view.models.VkData;
+ import org.springframework.http.ResponseEntity;
++import org.springframework.web.client.HttpServerErrorException;
+ import org.springframework.web.client.RestTemplate;
+ 
+ import java.util.Arrays;
+@@ -25,7 +26,13 @@
+         String query = "http://localhost:9090/posts?";
+         query = query + "userId=" + userId + "&chatId=" + chatId + "&group=" + group + "&amount=" + amount;
+         System.out.println("url bot: " + query);
+-        ResponseEntity<VkData[]> answer = restTemplate.getForEntity(query, VkData[].class);
++        ResponseEntity<VkData[]> answer;
++        try{
++            answer = restTemplate.getForEntity(query, VkData[].class);
++        }
++        catch (HttpServerErrorException ex){
++            return List.of("Введено некорректное имя группы");
++        }
+         List<String> messages = new java.util.ArrayList<>(List.of("Ищем по группе: " + group
+                 + '\n' + " по количеству постов: " + amount
+                 + '\n' + '\n' + "Результат: " + '\n'));
+Index: view/src/main/java/com/deutsche/view/tools/methods/WordFromChannel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.view.tools.methods;\r\n\r\nimport com.deutsche.view.errors.ErrorHandler;\r\nimport com.deutsche.view.errors.ErrorHandlerImpl;\r\nimport com.deutsche.view.errors.Status;\r\nimport lombok.NoArgsConstructor;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.stereotype.Component;\r\nimport org.springframework.web.client.RestTemplate;\r\n\r\nimport java.util.List;\r\nimport java.util.function.Function;\r\n\r\n@Component\r\n@NoArgsConstructor\r\npublic class WordFromChannel implements Function<List<String>,List<String>> {\r\n    private final RestTemplate restTemplate = new RestTemplate();\r\n    private final ErrorHandler errorHandler = new ErrorHandlerImpl();\r\n\r\n    @Override\r\n    public List<String> apply(List<String> params) {\r\n\r\n        String userId = params.get(0);\r\n        String chatId = params.get(1);\r\n        String word =  params.get(2);\r\n        String group = params.get(3);\r\n        String amount = params.get(4);\r\n\r\n\r\n        String query = \"http://localhost:9090/repetitions?\";\r\n        query = query + \"userId=\" + userId + \"&chatId=\" + chatId + \"&word=\" + word + \"&group=\" + group + \"&amount=\" + amount;\r\n        System.out.println(query);\r\n        ResponseEntity<Status> answer = restTemplate.getForEntity(query, Status.class);\r\n        System.out.println(\"answer from operator: \" + answer.getBody().message);\r\n        return List.of(errorHandler.handle(answer.getBody()));\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/tools/methods/WordFromChannel.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/java/com/deutsche/view/tools/methods/WordFromChannel.java	(date 1600564663764)
+@@ -6,6 +6,7 @@
+ import lombok.NoArgsConstructor;
+ import org.springframework.http.ResponseEntity;
+ import org.springframework.stereotype.Component;
++import org.springframework.web.client.HttpServerErrorException;
+ import org.springframework.web.client.RestTemplate;
+ 
+ import java.util.List;
+@@ -30,7 +31,13 @@
+         String query = "http://localhost:9090/repetitions?";
+         query = query + "userId=" + userId + "&chatId=" + chatId + "&word=" + word + "&group=" + group + "&amount=" + amount;
+         System.out.println(query);
+-        ResponseEntity<Status> answer = restTemplate.getForEntity(query, Status.class);
++        ResponseEntity<Status> answer;
++        try{
++            answer = restTemplate.getForEntity(query, Status.class);
++        }
++        catch (HttpServerErrorException ex){
++            return List.of("Введено некорректное имя группы");
++        }
+         System.out.println("answer from operator: " + answer.getBody().message);
+         return List.of(errorHandler.handle(answer.getBody()));
+     }
+Index: view/src/main/java/com/deutsche/view/handlers/ResponseHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.view.handlers;\r\n\r\nimport com.deutsche.view.tools.Buttons;\r\nimport com.deutsche.view.tools.Keyboard;\r\nimport lombok.NoArgsConstructor;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.stereotype.Component;\r\nimport org.telegram.telegrambots.api.methods.send.SendMessage;\r\nimport org.telegram.telegrambots.api.objects.Update;\r\n\r\nimport java.util.*;\r\nimport java.util.stream.Stream;\r\n\r\n@Component\r\n@NoArgsConstructor\r\npublic class ResponseHandler implements Handler{\r\n    //private Buttons state;\r\n    @Autowired\r\n    private Keyboard keyboard;\r\n    private String message;\r\n    private Map<Long, Buttons> state = new HashMap();\r\n\r\n    public List<SendMessage> handle(Update update){\r\n        message = update.getMessage().getText();\r\n        Long chatId = update.getMessage().getChatId();\r\n\r\n        if (message.startsWith(\"/start\")){\r\n            SendMessage resultMessage = new SendMessage();\r\n            keyboard.setButtons(resultMessage);\r\n            resultMessage.setText(\"Choose your option!\");\r\n            state.put(chatId, Buttons.DEFAULT);\r\n            return List.of(resultMessage);\r\n        }\r\n\r\n        if (Stream.of(Buttons.values()).anyMatch(value -> value.label.equals(message))){\r\n            SendMessage resultMessage = new SendMessage();\r\n            Optional<Buttons> option = Stream.of(Buttons.values()).filter(value -> value.label.equals(message)).findFirst();\r\n            String result = option.orElse(Buttons.DEFAULT).requiredParams;\r\n            state.put(chatId, option.orElse(Buttons.DEFAULT));\r\n            keyboard.setEmpty(resultMessage);\r\n            resultMessage.setText(result);\r\n            return List.of(resultMessage);\r\n        }\r\n\r\n        List<String> params = new ArrayList<>();\r\n        params.add(update.getMessage().getFrom().getId().toString());\r\n        params.add(update.getMessage().getChatId().toString());\r\n        List<String> splits = Arrays.asList(message.split(\";\"));\r\n        splits.forEach(split -> params.add(split.strip()));\r\n        List<String> result = state.get(chatId).onClick.apply(params);\r\n        List<SendMessage> messages = new ArrayList<>();\r\n        result.forEach(text -> messages.add(new SendMessage().setText(text)));\r\n        state.put(chatId, Buttons.DEFAULT);\r\n        return messages;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/handlers/ResponseHandler.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/java/com/deutsche/view/handlers/ResponseHandler.java	(date 1600564917351)
+@@ -45,7 +45,7 @@
+         List<String> params = new ArrayList<>();
+         params.add(update.getMessage().getFrom().getId().toString());
+         params.add(update.getMessage().getChatId().toString());
+-        List<String> splits = Arrays.asList(message.split(";"));
++        List<String> splits = Arrays.asList(message.split(","));
+         splits.forEach(split -> params.add(split.strip()));
+         List<String> result = state.get(chatId).onClick.apply(params);
+         List<SendMessage> messages = new ArrayList<>();
+Index: view/src/main/java/com/deutsche/view/tools/methods/CategorizeChannel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.view.tools.methods;\r\n\r\nimport com.deutsche.view.errors.ErrorHandler;\r\nimport com.deutsche.view.errors.ErrorHandlerImpl;\r\nimport com.deutsche.view.errors.Status;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.web.client.RestTemplate;\r\n\r\nimport java.util.List;\r\nimport java.util.function.Function;\r\n\r\npublic class CategorizeChannel implements Function<List<String>,List<String>> {\r\n    private final RestTemplate restTemplate = new RestTemplate();\r\n    private final ErrorHandler errorHandler = new ErrorHandlerImpl();\r\n\r\n    @Override\r\n    public List<String> apply(List<String> params) {\r\n        String userId = params.get(0);\r\n        String chatId = params.get(1);\r\n        String group = params.get(2);\r\n        String amount = \"25\";\r\n        if (params.size() == 4) {\r\n            amount = params.get(3);\r\n        }\r\n\r\n        String query = \"http://localhost:9090/classification?\";\r\n        query = query + \"userId=\" + userId + \"&chatId=\" + chatId + \"&group=\" + group + \"&amount=\" + amount;\r\n        System.out.println(query);\r\n        ResponseEntity<Status> answer = restTemplate.getForEntity(query, Status.class);\r\n        System.out.println(\"answer from operator: \" + answer.getBody().message);\r\n        return List.of(errorHandler.handle(answer.getBody()));\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/tools/methods/CategorizeChannel.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/java/com/deutsche/view/tools/methods/CategorizeChannel.java	(date 1600564782711)
+@@ -4,6 +4,7 @@
+ import com.deutsche.view.errors.ErrorHandlerImpl;
+ import com.deutsche.view.errors.Status;
+ import org.springframework.http.ResponseEntity;
++import org.springframework.web.client.HttpServerErrorException;
+ import org.springframework.web.client.RestTemplate;
+ 
+ import java.util.List;
+@@ -26,7 +27,13 @@
+         String query = "http://localhost:9090/classification?";
+         query = query + "userId=" + userId + "&chatId=" + chatId + "&group=" + group + "&amount=" + amount;
+         System.out.println(query);
+-        ResponseEntity<Status> answer = restTemplate.getForEntity(query, Status.class);
++        ResponseEntity<Status> answer;
++        try{
++            answer = restTemplate.getForEntity(query, Status.class);
++        }
++        catch (HttpServerErrorException ex){
++            return List.of("Введено некорректное имя группы");
++        }
+         System.out.println("answer from operator: " + answer.getBody().message);
+         return List.of(errorHandler.handle(answer.getBody()));
+     }
+Index: view/src/main/java/com/deutsche/view/tools/Buttons.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.view.tools;\r\n\r\nimport com.deutsche.view.tools.methods.CategorizeChannel;\r\nimport com.deutsche.view.tools.methods.Posts;\r\nimport com.deutsche.view.tools.methods.WordFromChannel;\r\nimport lombok.AllArgsConstructor;\r\n\r\nimport java.util.List;\r\nimport java.util.function.Function;\r\n\r\n@AllArgsConstructor\r\npublic enum Buttons {\r\n\r\n\r\n    DEFAULT(\"default\", \"\", (params) -> List.of(\"Мы не знаем таких команд :(\")),\r\n    CHANNEL(\"Классификация канала\", \"Введите группу\", new CategorizeChannel()),\r\n    WORD(\"Поиск слова на каннале\",\"Введи слово, канал/группу, дату с, дату по в формате Кино; @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45\", new WordFromChannel()),\r\n    //STATISTICS(\"Статистика\", \"Введи канал/группу, дату с, дату по в формате @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45\", new Statistics()),\r\n    POSTS(\"Прочитать посты\", \"Введите группу, количество постов в формате: testChannel;50\", new Posts());\r\n\r\n    public String label;\r\n    public String requiredParams;\r\n    public Function<List<String>,List<String>> onClick;\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/tools/Buttons.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/java/com/deutsche/view/tools/Buttons.java	(date 1600564994842)
+@@ -14,9 +14,9 @@
+ 
+     DEFAULT("default", "", (params) -> List.of("Мы не знаем таких команд :(")),
+     CHANNEL("Классификация канала", "Введите группу", new CategorizeChannel()),
+-    WORD("Поиск слова на каннале","Введи слово, канал/группу, дату с, дату по в формате Кино; @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45", new WordFromChannel()),
++    WORD("Поиск слова в группеы","Введите слово, группу, количество постов для поиска в формате Кино,groupName,20", new WordFromChannel()),
+     //STATISTICS("Статистика", "Введи канал/группу, дату с, дату по в формате @testChannel; 26.06.2017 20:40 - 18.07.2019 06:45", new Statistics()),
+-    POSTS("Прочитать посты", "Введите группу, количество постов в формате: testChannel;50", new Posts());
++    POSTS("Почитать посты", "Введите группу, количество постов в формате: groupName,50", new Posts());
+ 
+     public String label;
+     public String requiredParams;
+Index: .idea/libraries/Maven__org_json_json_20160810.xml
+===================================================================
+--- .idea/libraries/Maven__org_json_json_20160810.xml	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ .idea/libraries/Maven__org_json_json_20160810.xml	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
+@@ -1,13 +0,0 @@
+-<component name="libraryTable">
+-  <library name="Maven: org.json:json:20160810">
+-    <CLASSES>
+-      <root url="jar://$MAVEN_REPOSITORY$/org/json/json/20160810/json-20160810.jar!/" />
+-    </CLASSES>
+-    <JAVADOC>
+-      <root url="jar://$MAVEN_REPOSITORY$/org/json/json/20160810/json-20160810-javadoc.jar!/" />
+-    </JAVADOC>
+-    <SOURCES>
+-      <root url="jar://$MAVEN_REPOSITORY$/org/json/json/20160810/json-20160810-sources.jar!/" />
+-    </SOURCES>
+-  </library>
+-</component>
+\ No newline at end of file
+Index: view/src/main/resources/bootstrap.yml
+===================================================================
+--- view/src/main/resources/bootstrap.yml	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/resources/bootstrap.yml	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
+@@ -1,3 +0,0 @@
+-spring:
+-  application:
+-    name: VIEW
+\ No newline at end of file
+Index: view/target/classes/bootstrap.yml
+===================================================================
+--- view/target/classes/bootstrap.yml	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/target/classes/bootstrap.yml	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
+@@ -1,3 +0,0 @@
+-spring:
+-  application:
+-    name: VIEW
+\ No newline at end of file
+Index: operator/src/main/java/com/deutsche/operator/services/TelegramCommandsService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.operator.services;\r\n\r\nimport com.deutsche.operator.enums.Status;\r\nimport com.deutsche.operator.repo.GroupsRepo;\r\nimport lombok.SneakyThrows;\r\nimport org.json.JSONObject;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.stereotype.Service;\r\n\r\n@Service\r\npublic class TelegramCommandsService implements CommandsService {\r\n    @Autowired\r\n    private CheckConditionsService checkConditionsService;\r\n    @Autowired\r\n    private GroupsRepo groupRepo;\r\n    @Autowired\r\n    private RestService restService;\r\n\r\n    @SneakyThrows\r\n    @Override\r\n    public Status getWordRepetitions(int userId, long chatId, String word, String group, int amount) {\r\n        Status checkUserVar = checkConditionsService.checkUser(userId);\r\n        if (checkUserVar.code < 0){\r\n            return Status.UNKNOWNUSER;\r\n        }\r\n\r\n        int groupId = restService.getIdGroupByName(group);\r\n        return restService.repetitions(chatId, word, groupId, amount);\r\n    }\r\n\r\n    @SneakyThrows\r\n    @Override\r\n    public Status getClassification(int userId, long chatId, String group, int amount) {\r\n        Status checkUserVar = checkConditionsService.checkUser(userId);\r\n        if (checkUserVar.code < 0){\r\n            return Status.UNKNOWNUSER;\r\n        }\r\n\r\n        int groupId = restService.getIdGroupByName(group);\r\n        return restService.classification(chatId, groupId, amount);\r\n    }\r\n\r\n    @SneakyThrows\r\n    @Override\r\n    public Object[] getPosts(int userId, String group, int amount) {\r\n        Status checkUserVar = checkConditionsService.checkUser(userId);\r\n        if (checkUserVar.code < 0){\r\n            String[] error = {\"error\",  checkUserVar.code + \"\"};\r\n            return error;\r\n        }\r\n\r\n\r\n\r\n        int groupId = restService.getIdGroupByName(group);\r\n        return restService.posts(groupId, amount);\r\n    }\r\n\r\n    @Override\r\n    public JSONObject getGroupClass(String group) {\r\n        return null;\r\n//        UserErrors checkUserVar = checkConditionsService.checkUser(userId);\r\n//        if (checkUserVar.code < 0){\r\n//            return mew JSONobject;//checkUserVar.code;\r\n//        }\r\n//\r\n//        int groupId = restService.getIdGroupByName(group);\r\n//        GroupsDefinition groupsDefinition = checkConditionsService.defineGroupDatabase(groupId);\r\n//        if (groupsDefinition.code < 0){\r\n//            return groupsDefinition.code;\r\n//        }\r\n//\r\n//        return 10;\r\n    }\r\n\r\n    @Override\r\n    public JSONObject getStatistics(String group) {\r\n        return null;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- operator/src/main/java/com/deutsche/operator/services/TelegramCommandsService.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ operator/src/main/java/com/deutsche/operator/services/TelegramCommandsService.java	(date 1600555027109)
+@@ -24,8 +24,8 @@
+             return Status.UNKNOWNUSER;
+         }
+ 
+-        int groupId = restService.getIdGroupByName(group);
+-        return restService.repetitions(chatId, word, groupId, amount);
++        //int groupId = restService.getIdGroupByName(group);
++        return restService.repetitions(chatId, word, group, amount);
+     }
+ 
+     @SneakyThrows
+Index: view/src/main/java/com/deutsche/view/controllers/BotController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.view.controllers;\r\n\r\nimport com.deutsche.view.Bot;\r\nimport org.springframework.amqp.core.Message;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.web.bind.annotation.GetMapping;\r\nimport org.springframework.web.bind.annotation.RestController;\r\nimport org.telegram.telegrambots.api.methods.send.SendMessage;\r\n\r\n@RestController\r\npublic class BotController {\r\n    @Autowired\r\n    private Bot bot;\r\n\r\n    @GetMapping(\"/queue\")\r\n    public String queueRepetitions(Message message){\r\n        SendMessage sendMessage = new SendMessage();\r\n        System.out.println(message.getBody());\r\n//       todo\r\n//        sendMessage.setChatId(chatId);\r\n//        message.getBody()\r\n//        bot.execute(sendMessage);\r\n        return \"Send message successfully\";\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/controllers/BotController.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/java/com/deutsche/view/controllers/BotController.java	(date 1600563638113)
+@@ -1,10 +1,11 @@
+ package com.deutsche.view.controllers;
+ 
+ import com.deutsche.view.Bot;
+-import org.springframework.amqp.core.Message;
++import com.deutsche.view.commands.Functionality;
++import lombok.SneakyThrows;
++import org.json.JSONObject;
+ import org.springframework.beans.factory.annotation.Autowired;
+-import org.springframework.web.bind.annotation.GetMapping;
+-import org.springframework.web.bind.annotation.RestController;
++import org.springframework.web.bind.annotation.*;
+ import org.telegram.telegrambots.api.methods.send.SendMessage;
+ 
+ @RestController
+@@ -12,14 +13,17 @@
+     @Autowired
+     private Bot bot;
+ 
+-    @GetMapping("/queue")
+-    public String queueRepetitions(Message message){
++    @SneakyThrows
++    @PostMapping("/queue")
++    public String queueRepetitions(@RequestBody String message){
+         SendMessage sendMessage = new SendMessage();
+-        System.out.println(message.getBody());
++        sendMessage.setChatId(244520472L);
++        System.out.println(message);
++        sendMessage.setText(Functionality.REPETITIONS.processMessage.apply(new JSONObject(message)));
+ //       todo
+ //        sendMessage.setChatId(chatId);
+ //        message.getBody()
+-//        bot.execute(sendMessage);
++        bot.execute(sendMessage);
+         return "Send message successfully";
+     }
+ }
+Index: operator/src/main/java/com/deutsche/operator/services/RestService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.operator.services;\r\n\r\nimport com.deutsche.operator.enums.Status;\r\nimport com.deutsche.operator.rabbit.RabbitConfiguration;\r\nimport lombok.SneakyThrows;\r\nimport org.apache.log4j.Logger;\r\nimport org.json.JSONObject;\r\nimport org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.beans.factory.annotation.Value;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.stereotype.Service;\r\nimport org.springframework.web.client.RestTemplate;\r\n\r\n@Service\r\npublic class RestService {\r\n    @Value(\"${groups.url}\")\r\n    protected String groupsUrl;\r\n\r\n    Logger logger = Logger.getLogger(RabbitConfiguration.class);\r\n    @Autowired\r\n    private SimpleMessageListenerContainer simpleMessageListenerContainer;\r\n\r\n    @Autowired\r\n    private RestTemplate restTemplate;\r\n\r\n    public int getIdGroupByName(String name){\r\n        String query = groupsUrl + \"group/getId?\";\r\n        query = query + \"name=\" + name;\r\n        return restTemplate.getForObject(query, int.class).intValue();\r\n    }\r\n    \r\n    public Status repetitions(long chatId, String word, int groupId, int amount){\r\n        JSONObject result = new JSONObject();\r\n        String query = groupsUrl + \"mongo/repetitions?\";\r\n        query += \"chatId=\" + chatId;\r\n        query += \"&word=\" + word;\r\n        query += \"&groupId=\" + groupId;\r\n        query += \"&amountPosts=\" + amount;\r\n        System.out.println(\"url operator-mongo repetitions: \" + query);\r\n        ResponseEntity answer = restTemplate.getForEntity(query, Object.class);\r\n        if (answer.getStatusCode() == HttpStatus.OK) {\r\n            return Status.ADDEDTOQUEUE;\r\n        }\r\n        return Status.CONNECTIONERROR;\r\n    }\r\n\r\n\r\n    public Status classification(long chatId, int groupId, int amount){\r\n        JSONObject result = new JSONObject();\r\n        String query = groupsUrl + \"mongo/classification?\";\r\n        query += \"chatId=\" + chatId;\r\n        query += \"&groupId=\" + groupId;\r\n        query += \"&amountPosts=\" + amount;\r\n        System.out.println(\"url operator-mongo repetitions: \" + query);\r\n        ResponseEntity answer = restTemplate.getForEntity(query, Object.class);\r\n        if (answer.getStatusCode() == HttpStatus.OK) {\r\n            return Status.ADDEDTOQUEUE;\r\n        }\r\n        return Status.CONNECTIONERROR;\r\n    }\r\n\r\n    @SneakyThrows\r\n    public Object[] posts(int groupId, int amount){\r\n        JSONObject result = new JSONObject();\r\n        String query = groupsUrl + \"group/postsById?\";\r\n        query += \"groupId=\" + groupId;\r\n        query += \"&amount=\" + amount;\r\n        System.out.println(\"postsURL: \" + query);\r\n        ResponseEntity<Object[]> answer = restTemplate.getForEntity(query, Object[].class);\r\n        return answer.getBody();\r\n    }\r\n\r\n    public int clasify(String word, int groupId){\r\n        JSONObject result = new JSONObject();\r\n        String query = groupsUrl + \"mongo/repetitions/\";\r\n        query += \"word=\" + word;\r\n        query += \"&groupId=\" + groupId;\r\n        return restTemplate.getForObject(query, int.class);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- operator/src/main/java/com/deutsche/operator/services/RestService.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ operator/src/main/java/com/deutsche/operator/services/RestService.java	(date 1600555035586)
+@@ -31,12 +31,12 @@
+         return restTemplate.getForObject(query, int.class).intValue();
+     }
+     
+-    public Status repetitions(long chatId, String word, int groupId, int amount){
++    public Status repetitions(long chatId, String word, String groupName, int amount){
+         JSONObject result = new JSONObject();
+         String query = groupsUrl + "mongo/repetitions?";
+         query += "chatId=" + chatId;
+         query += "&word=" + word;
+-        query += "&groupId=" + groupId;
++        query += "&groupId=" + groupName;
+         query += "&amountPosts=" + amount;
+         System.out.println("url operator-mongo repetitions: " + query);
+         ResponseEntity answer = restTemplate.getForEntity(query, Object.class);
+Index: view/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>bot-username=Test_java_09_09_2020_bot\r\nbot-token=1335623903:AAHXfpsJqnRkwFSOiuD_rqUWpVgLJ7duMbg\r\nserver.port=8080\r\n\r\nspring.application.name=VIEW\r\neureka.client.service-url.defaultZone=http://localhost:8761/eureka
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>windows-1251
+===================================================================
+--- view/src/main/resources/application.properties	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/resources/application.properties	(date 1600563669702)
+@@ -1,6 +1,5 @@
+ bot-username=Test_java_09_09_2020_bot
+ bot-token=1335623903:AAHXfpsJqnRkwFSOiuD_rqUWpVgLJ7duMbg
+ server.port=8080
+-
+ spring.application.name=VIEW
+-eureka.client.service-url.defaultZone=http://localhost:8761/eureka
+\ No newline at end of file
++#eureka.client.service-url.defaultZone=http://localhost:8761/eureka
+\ No newline at end of file
+Index: operator/src/main/java/com/deutsche/operator/rabbit/RabbitConfiguration.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.operator.rabbit;\r\n\r\nimport org.apache.log4j.Logger;\r\nimport org.springframework.amqp.core.AmqpAdmin;\r\nimport org.springframework.amqp.core.Message;\r\nimport org.springframework.amqp.core.MessageListener;\r\nimport org.springframework.amqp.core.Queue;\r\nimport org.springframework.amqp.rabbit.connection.CachingConnectionFactory;\r\nimport org.springframework.amqp.rabbit.connection.ConnectionFactory;\r\nimport org.springframework.amqp.rabbit.core.RabbitAdmin;\r\nimport org.springframework.amqp.rabbit.core.RabbitTemplate;\r\nimport org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.beans.factory.annotation.Value;\r\nimport org.springframework.context.annotation.Bean;\r\nimport org.springframework.context.annotation.Configuration;\r\nimport org.springframework.web.client.RestTemplate;\r\n\r\n@Configuration\r\npublic class RabbitConfiguration {\r\n    Logger logger = Logger.getLogger(RabbitConfiguration.class);\r\n\r\n    @Autowired\r\n    private RestTemplate restTemplate;\r\n    @Value(\"${bot.url}\")\r\n    private String botUrl;\r\n//    @Autowired\r\n//    VkDataService vkDataService;\r\n\r\n    //настраиваем соединение с RabbitMQ\r\n    @Bean\r\n    public ConnectionFactory connectionFactory() {\r\n        CachingConnectionFactory connectionFactory =\r\n                new CachingConnectionFactory(\"localhost\");\r\n        return connectionFactory;\r\n    }\r\n\r\n    @Bean\r\n    public AmqpAdmin amqpAdmin() {\r\n        return new RabbitAdmin(connectionFactory());\r\n    }\r\n\r\n    @Bean\r\n    public RabbitTemplate rabbitTemplate() {\r\n        return new RabbitTemplate(connectionFactory());\r\n    }\r\n\r\n    @Bean\r\n    public Queue VkTasksResponseQueue() {\r\n        return new Queue(\"VkTasksResponseQueue\");\r\n    }\r\n\r\n    //объявляем контейнер, который будет содержать листенер для сообщений\r\n    @Bean\r\n    public SimpleMessageListenerContainer messageListenerContainer2() {\r\n        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();\r\n        container.setConnectionFactory(connectionFactory());\r\n        container.setQueueNames(\"VkTasksResponseQueue\");\r\n        container.setMessageListener(new MessageListener() {\r\n            //тут ловим сообщения из VkTasksResponseQueue\r\n            public void onMessage(Message message) {\r\n                logger.info(\"received from VkTasksResponseQueue : \" + new String(message.getBody()));\r\n                String query = botUrl + \"queue\";\r\n                String answer = restTemplate.postForObject(query, message, String.class);\r\n                logger.info(\"received from TelegramBot : \" + answer);\r\n            }\r\n        });\r\n        return container;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- operator/src/main/java/com/deutsche/operator/rabbit/RabbitConfiguration.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ operator/src/main/java/com/deutsche/operator/rabbit/RabbitConfiguration.java	(date 1600562511458)
+@@ -59,10 +59,13 @@
+         container.setMessageListener(new MessageListener() {
+             //тут ловим сообщения из VkTasksResponseQueue
+             public void onMessage(Message message) {
+-                logger.info("received from VkTasksResponseQueue : " + new String(message.getBody()));
++                RestTemplate restTemplate2 = new RestTemplate();
+                 String query = botUrl + "queue";
+-                String answer = restTemplate.postForObject(query, message, String.class);
+-                logger.info("received from TelegramBot : " + answer);
++                String answerFromQueue =  new String(message.getBody());
++                System.out.println("received from VkTasksResponseQueue : " + answerFromQueue);
++                System.out.println(query);
++                String answer = restTemplate2.postForObject(query, answerFromQueue, String.class);
++                System.out.println("received from TelegramBot : " + answer);
+             }
+         });
+         return container;
+Index: view/src/main/java/com/deutsche/view/commands/Functionality.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/commands/Functionality.java	(date 1600557253788)
++++ view/src/main/java/com/deutsche/view/commands/Functionality.java	(date 1600557253788)
+@@ -0,0 +1,21 @@
++package com.deutsche.view.commands;
++
++import com.deutsche.view.commands.functions.Classification;
++import com.deutsche.view.commands.functions.Repetitions;
++import lombok.AllArgsConstructor;
++import org.json.JSONObject;
++
++import java.util.function.Function;
++
++@AllArgsConstructor
++public enum Functionality {
++    REPETITIONS("repetitions", new Repetitions()),
++    CLASSIFICATION("classification",  new Classification());
++
++    Functionality(String name) {
++        this.name = name;
++    }
++
++    public String name;
++    public Function<JSONObject, String> processMessage;
++}
+Index: .idea/shelf/Uncommitted_changes_before_Checkout_at_20_09_2020_1_10__Default_Changelist_.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/shelf/Uncommitted_changes_before_Checkout_at_20_09_2020_1_10__Default_Changelist_.xml	(date 1600563134540)
++++ .idea/shelf/Uncommitted_changes_before_Checkout_at_20_09_2020_1_10__Default_Changelist_.xml	(date 1600563134540)
+@@ -0,0 +1,4 @@
++<changelist name="Uncommitted_changes_before_Checkout_at_20_09_2020_1_10_[Default_Changelist]" date="1600553460213" recycled="false" toDelete="true">
++  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_20_09_2020_1_10_[Default_Changelist]/shelved.patch" />
++  <option name="DESCRIPTION" value="Uncommitted changes before Checkout at 20.09.2020 1:10 [Default Changelist]" />
++</changelist>
+\ No newline at end of file
+Index: view/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n    <modelVersion>4.0.0</modelVersion>\r\n\r\n    <parent>\r\n        <groupId>com.deutsche.channel-analysis</groupId>\r\n        <artifactId>reactor-parent</artifactId>\r\n        <version>0.0.1-SNAPSHOT</version>\r\n    </parent>\r\n\r\n\r\n    <properties>\r\n        <java.version>11</java.version>\r\n    </properties>\r\n\r\n    <artifactId>view</artifactId>\r\n    <version>0.0.1-SNAPSHOT</version>\r\n\r\n    <packaging>jar</packaging>\r\n    <name>view</name>\r\n    <description>Demo project for Spring Boot</description>\r\n\r\n    <dependencies>\r\n        <dependency>\r\n            <groupId>org.telegram</groupId>\r\n            <artifactId>telegrambots</artifactId>\r\n            <version>3.5</version>\r\n        </dependency>\r\n    </dependencies>\r\n\r\n    <build>\r\n        <plugins>\r\n            <plugin>\r\n                <groupId>org.springframework.boot</groupId>\r\n                <artifactId>spring-boot-maven-plugin</artifactId>\r\n            </plugin>\r\n        </plugins>\r\n    </build>\r\n\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/pom.xml	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/pom.xml	(date 1600563605637)
+@@ -27,6 +27,73 @@
+             <artifactId>telegrambots</artifactId>
+             <version>3.5</version>
+         </dependency>
++
++
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-actuator</artifactId>
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-web</artifactId>
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-data-rest</artifactId>
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-amqp</artifactId>
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-data-mongodb</artifactId>
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.amqp</groupId>
++            <artifactId>spring-rabbit</artifactId>
++            <version>2.2.10.RELEASE</version>
++        </dependency>
++
++        <dependency>
++            <groupId>org.projectlombok</groupId>
++            <artifactId>lombok</artifactId>
++            <optional>true</optional>
++        </dependency>
++        <dependency>
++            <groupId>junit</groupId>
++            <artifactId>junit</artifactId>
++            <version>4.12</version>
++            <scope>test</scope>
++        </dependency>
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-starter-test</artifactId>
++            <scope>test</scope>
++            <exclusions>
++                <exclusion>
++                    <groupId>org.junit.vintage</groupId>
++                    <artifactId>junit-vintage-engine</artifactId>
++                </exclusion>
++            </exclusions>
++        </dependency>
++
++        <dependency>
++            <groupId>org.json</groupId>
++            <artifactId>json</artifactId>
++            <version>20180130</version>
++        </dependency>
++
++        <dependency>
++            <groupId>org.springframework.boot</groupId>
++            <artifactId>spring-boot-configuration-processor</artifactId>
++            <optional>true</optional>
++        </dependency>
++        <dependency>
++            <groupId>log4j</groupId>
++            <artifactId>log4j</artifactId>
++            <version>1.2.17</version>
++        </dependency>
+     </dependencies>
+ 
+     <build>
+Index: groups/test.http
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>###\r\n#First test - should be empty\r\n\r\n# curl --location --request GET 'http://localhost:8080/mongo/posts'\r\nGET http://localhost:8080/mongo/posts\r\n\r\n###\r\n#Second will return OK and fill MongoDB\r\n\r\n# curl --location --request POST 'http://localhost:8080/mongo/add'\r\n#--header 'Content-Type: application/x-www-form-urlencoded'\r\n#--data-urlencode 'name=tproger'\r\n#--data-urlencode 'amount=2'\r\nPOST http://localhost:8080/mongo/add\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\nname=tproger&amount=2\r\n\r\n###\r\n#Third test - same as first, but return our posts added to database\r\n\r\n# curl --location --request GET 'http://localhost:8080/mongo/posts'\r\nGET http://localhost:8080/mongo/posts\r\n\r\n\r\n###\r\n\r\n\r\n###\r\n\r\n\r\n###\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- groups/test.http	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ groups/test.http	(date 1600561297418)
+@@ -11,7 +11,7 @@
+ #--header 'Content-Type: application/x-www-form-urlencoded'
+ #--data-urlencode 'name=tproger'
+ #--data-urlencode 'amount=2'
+-POST http://localhost:8080/mongo/add
++POST http://localhost:8081/queue
+ Content-Type: application/x-www-form-urlencoded
+ 
+ name=tproger&amount=2
+Index: groups/src/main/java/com/deutsche/groups/services/VkDataServiceImpl.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.groups.services;\r\n\r\nimport com.deutsche.groups.dao.VkDataDao;\r\nimport com.deutsche.groups.repositories.MongoGroupRepository;\r\nimport com.deutsche.groups.responses.WordMatchingResponse;\r\nimport com.vk.api.sdk.client.VkApiClient;\r\nimport com.vk.api.sdk.client.actors.ServiceActor;\r\nimport com.vk.api.sdk.exceptions.ApiException;\r\nimport com.vk.api.sdk.exceptions.ClientException;\r\nimport com.vk.api.sdk.objects.groups.GroupFull;\r\nimport com.vk.api.sdk.objects.wall.responses.GetResponse;\r\nimport lombok.SneakyThrows;\r\nimport org.apache.commons.lang3.SerializationUtils;\r\nimport org.springframework.amqp.core.AmqpTemplate;\r\nimport org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.scheduling.annotation.Async;\r\nimport org.springframework.scheduling.annotation.AsyncResult;\r\nimport org.springframework.stereotype.Service;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\nimport java.util.concurrent.Future;\r\n\r\n@Service\r\npublic class VkDataServiceImpl implements VkDataService {\r\n    private final ServiceActor actor;\r\n    private final VkApiClient vk;\r\n    private final AmqpTemplate template;\r\n    private final MongoGroupRepository mongoGroupRepository;\r\n\r\n    public VkDataServiceImpl(ServiceActor actor, VkApiClient vk, AmqpTemplate template, MongoGroupRepository mongoGroupRepository) {\r\n        this.actor = actor;\r\n        this.vk = vk;\r\n        this.template = template;\r\n        this.mongoGroupRepository = mongoGroupRepository;\r\n    }\r\n\r\n    @Override\r\n    public List<VkDataDao> getPosts(String groupId, int amount)  throws ClientException, ApiException {\r\n        int id = getGroupId(groupId);\r\n\r\n        GetResponse getResponse = vk.wall().get(actor)\r\n                .ownerId(-id)\r\n                .count(amount)\r\n                .execute();\r\n\r\n        List<VkDataDao> response = new ArrayList<>();\r\n        getResponse.getItems().forEach(item -> response.add(new VkDataDao(item)));\r\n\r\n        return response;\r\n    }\r\n\r\n    @SneakyThrows\r\n    @Override\r\n    public List<VkDataDao> getPostsById(int groupId, int amount) {\r\n        GetResponse getResponse = vk.wall().get(actor)\r\n                .ownerId(-groupId)\r\n                .count(amount)\r\n                .execute();\r\n\r\n        List<VkDataDao> response = new ArrayList<>();\r\n        getResponse.getItems().forEach(item -> response.add(new VkDataDao(item)));\r\n\r\n        return response;\r\n    }\r\n\r\n    @SneakyThrows\r\n    @Override\r\n    @Async\r\n    public Future<ResponseEntity> addPosts(String name, int amount) {\r\n        List<VkDataDao> posts = getPosts(name, amount);\r\n        posts.forEach(post -> mongoGroupRepository.save(post));\r\n        return AsyncResult.forValue(new ResponseEntity(HttpStatus.OK));\r\n    }\r\n\r\n    @Override\r\n    public ResponseEntity getRepetitions(String word, String groupId, int amountPosts) {\r\n        if (checkConnection(groupId)) {\r\n            template.convertAndSend(\"myVkTasksQueue\", new ArrayList(List.of(word, groupId, amountPosts)));\r\n            System.out.println(\"Sended to queue\");\r\n            return new ResponseEntity(HttpStatus.OK);\r\n        }\r\n        return new ResponseEntity(HttpStatus.BAD_REQUEST);\r\n    }\r\n\r\n    @Override\r\n    public boolean checkConnection(String groupId) {\r\n        try {\r\n            return getPosts(groupId, 1).get(0).getOwner_id() != null;\r\n        } catch (ClientException | ApiException e) {\r\n            e.printStackTrace();\r\n            return false;\r\n        }\r\n    }\r\n\r\n    @Override\r\n    public int getGroupId(String name) throws ClientException, ApiException {\r\n        List<GroupFull> resp = vk.groups().getById(actor).groupId(name).execute();\r\n        return resp.get(0).getId();\r\n    }\r\n\r\n    @Autowired\r\n    public void messageListenerContainer(SimpleMessageListenerContainer container) {\r\n        container.setMessageListener(message -> {\r\n            System.out.println(\"received from myVkTasksQueue : \" + SerializationUtils.deserialize(message.getBody()));\r\n            List tempList = SerializationUtils.deserialize(message.getBody());\r\n            addPosts((String) tempList.get(1),(Integer) tempList.get(2));\r\n            //some logic with mongo\r\n            WordMatchingResponse response = new WordMatchingResponse(50, 150);\r\n            template.convertAndSend(\"VkTasksResponseQueue\", new ArrayList(List.of(\r\n                    response.getMatches(),\r\n                    response.getAllWords()\r\n            )));\r\n        });\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- groups/src/main/java/com/deutsche/groups/services/VkDataServiceImpl.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ groups/src/main/java/com/deutsche/groups/services/VkDataServiceImpl.java	(date 1600556733299)
+@@ -11,6 +11,7 @@
+ import com.vk.api.sdk.objects.wall.responses.GetResponse;
+ import lombok.SneakyThrows;
+ import org.apache.commons.lang3.SerializationUtils;
++import org.json.JSONObject;
+ import org.springframework.amqp.core.AmqpTemplate;
+ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+ import org.springframework.beans.factory.annotation.Autowired;
+@@ -110,10 +111,11 @@
+             addPosts((String) tempList.get(1),(Integer) tempList.get(2));
+             //some logic with mongo
+             WordMatchingResponse response = new WordMatchingResponse(50, 150);
+-            template.convertAndSend("VkTasksResponseQueue", new ArrayList(List.of(
+-                    response.getMatches(),
+-                    response.getAllWords()
+-            )));
++
++            JSONObject object = new JSONObject();
++            object.put("matches", response.getMatches());
++            object.put("allWords", response.getAllWords());
++            template.convertAndSend("VkTasksResponseQueue", object.toString());
+         });
+     }
+ 
+Index: view/src/main/java/com/deutsche/view/Bot.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.view;\r\n\r\nimport com.deutsche.view.handlers.Handler;\r\nimport lombok.*;\r\nimport org.springframework.beans.factory.annotation.Autowired;\r\nimport org.springframework.beans.factory.annotation.Value;\r\nimport org.springframework.stereotype.Service;\r\nimport org.telegram.telegrambots.TelegramBotsApi;\r\nimport org.telegram.telegrambots.api.methods.send.SendMessage;\r\nimport org.telegram.telegrambots.api.objects.Update;\r\nimport org.telegram.telegrambots.bots.TelegramLongPollingBot;\r\nimport org.telegram.telegrambots.exceptions.TelegramApiRequestException;\r\n\r\nimport javax.annotation.PostConstruct;\r\nimport java.util.List;\r\n\r\n@Service\r\n@AllArgsConstructor\r\n@NoArgsConstructor\r\n@Builder\r\n@Setter\r\n@Getter\r\npublic class Bot extends TelegramLongPollingBot {\r\n    final int RECONNECT_PAUSE =10000;\r\n\r\n    @Value(\"Test_java_09_09_2020_bot\")\r\n    private String userName;\r\n    @Value(\"1335623903:AAHXfpsJqnRkwFSOiuD_rqUWpVgLJ7duMbg\")\r\n    private String token;\r\n\r\n    @Autowired\r\n    private Handler handler;\r\n\r\n    @Override\r\n    public String getBotUsername() {\r\n        return userName;\r\n    }\r\n\r\n    @Override\r\n    public String getBotToken() {\r\n        return token;\r\n    }\r\n\r\n    @SneakyThrows\r\n    @Override\r\n    public void onUpdateReceived(Update update) {\r\n        System.out.println(\"Receive new Update. updateID: \" + update.getUpdateId() + \"text: \" + update.getMessage().getText());\r\n        Long chatId = update.getMessage().getChatId();\r\n        String inputText = update.getMessage().getText();\r\n        List<SendMessage> messages = handler.handle(update);\r\n        messages.forEach(message -> {\r\n            try {\r\n                message.setChatId(chatId);\r\n                execute(message);\r\n            }\r\n            catch (Exception ex){\r\n                System.out.println(\"Error send message\");\r\n            }\r\n        });\r\n    }\r\n\r\n    @PostConstruct\r\n    public void botConnect() {\r\n        TelegramBotsApi telegramBotsApi = new TelegramBotsApi();\r\n        try {\r\n            telegramBotsApi.registerBot(this);\r\n            System.out.println(\"TelegramAPI started. Look for messages\");\r\n        } catch (TelegramApiRequestException e) {\r\n            System.out.println(\"Cant Connect. Pause \" + RECONNECT_PAUSE / 1000 + \"sec and try again. Error: \" + e.getMessage());\r\n            try {\r\n                Thread.sleep(RECONNECT_PAUSE);\r\n            } catch (InterruptedException e1) {\r\n                e1.printStackTrace();\r\n                return;\r\n            }\r\n            botConnect();\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/Bot.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/java/com/deutsche/view/Bot.java	(date 1600561530445)
+@@ -4,7 +4,7 @@
+ import lombok.*;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.beans.factory.annotation.Value;
+-import org.springframework.stereotype.Service;
++import org.springframework.stereotype.Component;
+ import org.telegram.telegrambots.TelegramBotsApi;
+ import org.telegram.telegrambots.api.methods.send.SendMessage;
+ import org.telegram.telegrambots.api.objects.Update;
+@@ -14,7 +14,7 @@
+ import javax.annotation.PostConstruct;
+ import java.util.List;
+ 
+-@Service
++@Component
+ @AllArgsConstructor
+ @NoArgsConstructor
+ @Builder
+Index: view/view.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<module type=\"JAVA_MODULE\" version=\"4\">\r\n  <component name=\"FacetManager\">\r\n    <facet type=\"Spring\" name=\"Spring\">\r\n      <configuration>\r\n        <fileset id=\"fileset\" name=\"Spring Application Context\" removed=\"false\">\r\n          <file>file://$MODULE_DIR$/src/main/java/com/deutsche/view/BotApp.java</file>\r\n          <file>file://$MODULE_DIR$/src/main/java/com/deutsche/view/ViewConf.java</file>\r\n        </fileset>\r\n        <fileset id=\"fileset2\" name=\"Spring Application Context (2)\" removed=\"false\">\r\n          <file>file://$MODULE_DIR$/src/main/java/com/deutsche/view/BotApp.java</file>\r\n          <file>file://$MODULE_DIR$/src/main/java/com/deutsche/view/ViewConf.java</file>\r\n        </fileset>\r\n      </configuration>\r\n    </facet>\r\n    <facet type=\"web\" name=\"Web\">\r\n      <configuration>\r\n        <webroots />\r\n        <sourceRoots>\r\n          <root url=\"file://$MODULE_DIR$/src/main/java\" />\r\n          <root url=\"file://$MODULE_DIR$/src/main/resources\" />\r\n        </sourceRoots>\r\n      </configuration>\r\n    </facet>\r\n  </component>\r\n  <component name=\"NewModuleRootManager\" LANGUAGE_LEVEL=\"JDK_11\">\r\n    <output url=\"file://$MODULE_DIR$/target/classes\" />\r\n    <output-test url=\"file://$MODULE_DIR$/target/test-classes\" />\r\n    <content url=\"file://$MODULE_DIR$\">\r\n      <sourceFolder url=\"file://$MODULE_DIR$/src/main/java\" isTestSource=\"false\" />\r\n      <sourceFolder url=\"file://$MODULE_DIR$/src/main/resources\" type=\"java-resource\" />\r\n      <sourceFolder url=\"file://$MODULE_DIR$/src/test/java\" isTestSource=\"true\" />\r\n      <excludeFolder url=\"file://$MODULE_DIR$/target\" />\r\n    </content>\r\n    <orderEntry type=\"inheritedJdk\" />\r\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.telegram:telegrambots:3.5\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.telegram:telegrambots-meta:3.5\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.google.inject:guice:4.1.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: javax.inject:javax.inject:1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: aopalliance:aopalliance:1.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.google.guava:guava:29.0-jre\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.google.guava:failureaccess:1.0.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.google.code.findbugs:jsr305:3.0.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.checkerframework:checker-qual:2.11.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.google.errorprone:error_prone_annotations:2.3.4\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.google.j2objc:j2objc-annotations:1.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.fasterxml.jackson.core:jackson-annotations:2.11.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.11.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:2.11.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.fasterxml.jackson.module:jackson-module-jaxb-annotations:2.11.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.fasterxml.jackson.core:jackson-databind:2.11.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.fasterxml.jackson.core:jackson-core:2.11.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.jersey.media:jersey-media-json-jackson:2.30.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.jersey.core:jersey-common:2.30.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.hk2:osgi-resource-locator:1.0.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.sun.activation:jakarta.activation:1.2.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.jersey.ext:jersey-entity-filtering:2.30.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.jersey.containers:jersey-container-grizzly2-http:2.30.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.hk2.external:jakarta.inject:2.6.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.grizzly:grizzly-http-server:2.4.4\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.grizzly:grizzly-http:2.4.4\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.grizzly:grizzly-framework:2.4.4\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: jakarta.ws.rs:jakarta.ws.rs-api:2.1.6\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.jersey.core:jersey-server:2.30.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.jersey.core:jersey-client:2.30.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish.jersey.media:jersey-media-jaxb:2.30.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: jakarta.annotation:jakarta.annotation-api:1.3.5\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: jakarta.validation:jakarta.validation-api:2.0.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.json:json:20160810\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.apache.httpcomponents:httpclient:4.5.12\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.apache.httpcomponents:httpcore:4.4.13\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: commons-codec:commons-codec:1.14\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.apache.httpcomponents:httpmime:4.5.12\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: commons-io:commons-io:2.5\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-config-client:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot-autoconfigure:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-commons:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.security:spring-security-crypto:5.3.4.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-context:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-web:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-beans:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-starter-config:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-starter:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.security:spring-security-rsa:1.0.9.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.bouncycastle:bcpkix-jdk15on:1.64\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.bouncycastle:bcprov-jdk15on:1.64\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-netflix-hystrix:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot-starter-aop:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.aspectj:aspectjweaver:1.9.6\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-netflix-eureka-client:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.eureka:eureka-client:1.9.25\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.codehaus.jettison:jettison:1.3.7\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: stax:stax-api:1.0.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.netflix-commons:netflix-eventbus:0.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: com.netflix.netflix-commons:netflix-infix:0.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: commons-jxpath:commons-jxpath:1.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: joda-time:joda-time:2.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: org.antlr:antlr-runtime:3.4\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: org.antlr:stringtemplate:3.2.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: antlr:antlr:2.7.7\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: com.google.code.gson:gson:2.8.6\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: org.apache.commons:commons-math:2.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.archaius:archaius-core:0.7.6\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: javax.ws.rs:jsr311-api:1.1.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.servo:servo-core:0.12.21\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.sun.jersey:jersey-core:1.19.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.sun.jersey:jersey-client:1.19.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.sun.jersey.contribs:jersey-apache-client4:1.19.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: commons-configuration:commons-configuration:1.10\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: commons-lang:commons-lang:2.6\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.eureka:eureka-core:1.9.25\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.fasterxml.woodstox:woodstox-core:5.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.codehaus.woodstox:stax2-api:4.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-starter-netflix-archaius:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-netflix-ribbon:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-netflix-archaius:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-starter-netflix-ribbon:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.ribbon:ribbon:2.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: com.netflix.ribbon:ribbon-transport:2.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: io.reactivex:rxnetty-contexts:0.4.9\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: io.reactivex:rxnetty-servo:0.4.9\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: com.netflix.hystrix:hystrix-core:1.5.18\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: io.reactivex:rxnetty:0.4.9\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.ribbon:ribbon-core:2.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.ribbon:ribbon-httpclient:2.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: commons-collections:commons-collections:3.2.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: com.netflix.netflix-commons:netflix-commons-util:0.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.ribbon:ribbon-loadbalancer:2.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: com.netflix.netflix-commons:netflix-statistics:0.1.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: io.reactivex:rxjava:1.3.8\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-starter-loadbalancer:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.cloud:spring-cloud-loadbalancer:2.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot-starter-validation:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.glassfish:jakarta.el:3.0.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.hibernate.validator:hibernate-validator:6.1.5.Final\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.jboss.logging:jboss-logging:3.4.1.Final\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.fasterxml:classmate:1.5.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: io.projectreactor:reactor-core:3.3.9.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.reactivestreams:reactive-streams:1.0.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: io.projectreactor.addons:reactor-extra:3.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot-starter-cache:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-context-support:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.stoyanr:evictor:1.0.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.netflix.ribbon:ribbon-eureka:2.3.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.slf4j:slf4j-api:1.7.30\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.thoughtworks.xstream:xstream:1.4.11.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: xmlpull:xmlpull:1.1.3.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: xpp3:xpp3_min:1.1.4c\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot-starter-actuator:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot-starter:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot-starter-logging:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: ch.qos.logback:logback-classic:1.2.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: ch.qos.logback:logback-core:1.2.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.apache.logging.log4j:log4j-to-slf4j:2.13.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.apache.logging.log4j:log4j-api:2.13.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.slf4j:jul-to-slf4j:1.7.30\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.yaml:snakeyaml:1.26\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot-actuator-autoconfigure:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.boot:spring-boot-actuator:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: io.micrometer:micrometer-core:1.5.4\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.hdrhistogram:HdrHistogram:2.1.12\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"RUNTIME\" name=\"Maven: org.latencyutils:LatencyUtils:2.0.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.projectlombok:lombok:1.18.12\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.springframework.boot:spring-boot-starter-test:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.springframework.boot:spring-boot-test:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.springframework.boot:spring-boot-test-autoconfigure:2.3.3.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: com.jayway.jsonpath:json-path:2.4.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: net.minidev:json-smart:2.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: net.minidev:accessors-smart:1.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.ow2.asm:asm:5.0.4\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: jakarta.xml.bind:jakarta.xml.bind-api:2.3.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: jakarta.activation:jakarta.activation-api:1.2.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.assertj:assertj-core:3.16.1\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.hamcrest:hamcrest:2.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.junit.jupiter:junit-jupiter:5.6.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.junit.jupiter:junit-jupiter-api:5.6.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.apiguardian:apiguardian-api:1.1.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.opentest4j:opentest4j:1.2.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.junit.platform:junit-platform-commons:1.6.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.junit.jupiter:junit-jupiter-params:5.6.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.junit.jupiter:junit-jupiter-engine:5.6.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.junit.platform:junit-platform-engine:1.6.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.mockito:mockito-core:3.3.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: net.bytebuddy:byte-buddy:1.10.14\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: net.bytebuddy:byte-buddy-agent:1.10.14\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.objenesis:objenesis:2.6\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.mockito:mockito-junit-jupiter:3.3.3\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.skyscreamer:jsonassert:1.5.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: com.vaadin.external.google:android-json:0.0.20131108.vaadin1\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-core:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-jcl:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.springframework:spring-test:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.xmlunit:xmlunit-core:2.7.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: junit:junit:4.12\" level=\"project\" />\r\n    <orderEntry type=\"library\" scope=\"TEST\" name=\"Maven: org.hamcrest:hamcrest-core:2.2\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.amqp:spring-rabbit:2.2.10.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: com.rabbitmq:amqp-client:5.9.0\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.amqp:spring-amqp:2.2.10.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework.retry:spring-retry:1.2.5.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-context:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-aop:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-expression:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-messaging:5.2.8.RELEASE\" level=\"project\" />\r\n    <orderEntry type=\"library\" name=\"Maven: org.springframework:spring-tx:5.2.8.RELEASE\" level=\"project\" />\r\n  </component>\r\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/view.iml	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/view.iml	(date 1600563621766)
+@@ -1,13 +1,24 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+-<module type="JAVA_MODULE" version="4">
++<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
+   <component name="FacetManager">
+     <facet type="Spring" name="Spring">
+       <configuration>
+-        <fileset id="fileset" name="Spring Application Context" removed="false">
++        <fileset id="spring_boot_com.deutsche.view.BotApp" name="BotApp" removed="true">
+           <file>file://$MODULE_DIR$/src/main/java/com/deutsche/view/BotApp.java</file>
+-          <file>file://$MODULE_DIR$/src/main/java/com/deutsche/view/ViewConf.java</file>
++          <file>file://$MODULE_DIR$/src/main/resources/application.properties</file>
++        </fileset>
++        <fileset id="bootstrap_spring_boot_com.deutsche.view.BotApp" name="BotApp Bootstrap" removed="true">
++          <file>jar://$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-autoconfigure/2.3.3.RELEASE/spring-boot-autoconfigure-2.3.3.RELEASE.jar!/org/springframework/boot/autoconfigure/context/PropertyPlaceholderAutoConfiguration.class</file>
++          <file>jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-context/2.2.5.RELEASE/spring-cloud-context-2.2.5.RELEASE.jar!/org/springframework/cloud/autoconfigure/ConfigurationPropertiesRebinderAutoConfiguration.class</file>
++          <file>jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-context/2.2.5.RELEASE/spring-cloud-context-2.2.5.RELEASE.jar!/org/springframework/cloud/bootstrap/config/PropertySourceBootstrapConfiguration.class</file>
++          <file>jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-context/2.2.5.RELEASE/spring-cloud-context-2.2.5.RELEASE.jar!/org/springframework/cloud/bootstrap/encrypt/EncryptionBootstrapConfiguration.class</file>
++          <file>jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-config-client/2.2.5.RELEASE/spring-cloud-config-client-2.2.5.RELEASE.jar!/org/springframework/cloud/config/client/ConfigServiceBootstrapConfiguration.class</file>
++          <file>jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-config-client/2.2.5.RELEASE/spring-cloud-config-client-2.2.5.RELEASE.jar!/org/springframework/cloud/config/client/DiscoveryClientConfigServiceBootstrapConfiguration.class</file>
++          <file>jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-netflix-eureka-client/2.2.5.RELEASE/spring-cloud-netflix-eureka-client-2.2.5.RELEASE.jar!/org/springframework/cloud/netflix/eureka/config/EurekaConfigServerBootstrapConfiguration.class</file>
++          <file>jar://$MAVEN_REPOSITORY$/org/springframework/cloud/spring-cloud-context/2.2.5.RELEASE/spring-cloud-context-2.2.5.RELEASE.jar!/org/springframework/cloud/util/random/CachedRandomPropertySourceAutoConfiguration.class</file>
++          <file>file://$MODULE_DIR$/src/main/resources/bootstrap.yml</file>
+         </fileset>
+-        <fileset id="fileset2" name="Spring Application Context (2)" removed="false">
++        <fileset id="fileset" name="Spring Application Context" removed="false">
+           <file>file://$MODULE_DIR$/src/main/java/com/deutsche/view/BotApp.java</file>
+           <file>file://$MODULE_DIR$/src/main/java/com/deutsche/view/ViewConf.java</file>
+         </fileset>
+@@ -68,20 +79,102 @@
+     <orderEntry type="library" name="Maven: org.glassfish.jersey.media:jersey-media-jaxb:2.30.1" level="project" />
+     <orderEntry type="library" name="Maven: jakarta.annotation:jakarta.annotation-api:1.3.5" level="project" />
+     <orderEntry type="library" name="Maven: jakarta.validation:jakarta.validation-api:2.0.2" level="project" />
+-    <orderEntry type="library" name="Maven: org.json:json:20160810" level="project" />
+     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.5.12" level="project" />
+     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.4.13" level="project" />
+     <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.14" level="project" />
+     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpmime:4.5.12" level="project" />
+     <orderEntry type="library" name="Maven: commons-io:commons-io:2.5" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-actuator:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-logging:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.2.3" level="project" />
++    <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.2.3" level="project" />
++    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-to-slf4j:2.13.3" level="project" />
++    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.13.3" level="project" />
++    <orderEntry type="library" name="Maven: org.slf4j:jul-to-slf4j:1.7.30" level="project" />
++    <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.26" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-actuator-autoconfigure:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-actuator:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.2" level="project" />
++    <orderEntry type="library" name="Maven: io.micrometer:micrometer-core:1.5.4" level="project" />
++    <orderEntry type="library" name="Maven: org.hdrhistogram:HdrHistogram:2.1.12" level="project" />
++    <orderEntry type="library" scope="RUNTIME" name="Maven: org.latencyutils:LatencyUtils:2.0.3" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-web:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-json:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.11.2" level="project" />
++    <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-parameter-names:2.11.2" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-tomcat:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.apache.tomcat.embed:tomcat-embed-core:9.0.37" level="project" />
++    <orderEntry type="library" name="Maven: org.glassfish:jakarta.el:3.0.3" level="project" />
++    <orderEntry type="library" name="Maven: org.apache.tomcat.embed:tomcat-embed-websocket:9.0.37" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-web:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-beans:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-webmvc:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-aop:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-expression:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-data-rest:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.data:spring-data-rest-webmvc:3.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.data:spring-data-rest-core:3.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.hateoas:spring-hateoas:1.1.1.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.plugin:spring-plugin-core:2.0.0.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.atteo:evo-inflector:1.2.2" level="project" />
++    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.30" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-amqp:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-messaging:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-data-mongodb:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.mongodb:mongodb-driver-sync:4.0.5" level="project" />
++    <orderEntry type="library" name="Maven: org.mongodb:bson:4.0.5" level="project" />
++    <orderEntry type="library" name="Maven: org.mongodb:mongodb-driver-core:4.0.5" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.data:spring-data-mongodb:3.0.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.data:spring-data-commons:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.amqp:spring-rabbit:2.2.10.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: com.rabbitmq:amqp-client:5.9.0" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.amqp:spring-amqp:2.2.10.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.retry:spring-retry:1.2.5.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-tx:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.projectlombok:lombok:1.18.12" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.12" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-core:2.2" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.springframework.boot:spring-boot-starter-test:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.springframework.boot:spring-boot-test:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.springframework.boot:spring-boot-test-autoconfigure:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: com.jayway.jsonpath:json-path:2.4.0" level="project" />
++    <orderEntry type="library" name="Maven: net.minidev:json-smart:2.3" level="project" />
++    <orderEntry type="library" name="Maven: net.minidev:accessors-smart:1.2" level="project" />
++    <orderEntry type="library" name="Maven: org.ow2.asm:asm:5.0.4" level="project" />
++    <orderEntry type="library" name="Maven: jakarta.xml.bind:jakarta.xml.bind-api:2.3.3" level="project" />
++    <orderEntry type="library" name="Maven: jakarta.activation:jakarta.activation-api:1.2.2" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.assertj:assertj-core:3.16.1" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest:2.2" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter:5.6.2" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-api:5.6.2" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.apiguardian:apiguardian-api:1.1.0" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.opentest4j:opentest4j:1.2.0" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.junit.platform:junit-platform-commons:1.6.2" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-params:5.6.2" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-engine:5.6.2" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.junit.platform:junit-platform-engine:1.6.2" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-core:3.3.3" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy:1.10.14" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy-agent:1.10.14" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.objenesis:objenesis:2.6" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-junit-jupiter:3.3.3" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.skyscreamer:jsonassert:1.5.0" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: com.vaadin.external.google:android-json:0.0.20131108.vaadin1" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-core:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework:spring-jcl:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.springframework:spring-test:5.2.8.RELEASE" level="project" />
++    <orderEntry type="library" scope="TEST" name="Maven: org.xmlunit:xmlunit-core:2.7.0" level="project" />
++    <orderEntry type="library" name="Maven: org.json:json:20180130" level="project" />
++    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-configuration-processor:2.3.3.RELEASE" level="project" />
++    <orderEntry type="library" name="Maven: log4j:log4j:1.2.17" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.cloud:spring-cloud-config-client:2.2.5.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-autoconfigure:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:2.3.3.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.cloud:spring-cloud-commons:2.2.5.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.security:spring-security-crypto:5.3.4.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.cloud:spring-cloud-context:2.2.5.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework:spring-web:5.2.8.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework:spring-beans:5.2.8.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.cloud:spring-cloud-starter-config:2.2.5.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.cloud:spring-cloud-starter:2.2.5.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.security:spring-security-rsa:1.0.9.RELEASE" level="project" />
+@@ -135,7 +228,6 @@
+     <orderEntry type="library" name="Maven: org.springframework.cloud:spring-cloud-starter-loadbalancer:2.2.5.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.cloud:spring-cloud-loadbalancer:2.2.5.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-validation:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.glassfish:jakarta.el:3.0.3" level="project" />
+     <orderEntry type="library" name="Maven: org.hibernate.validator:hibernate-validator:6.1.5.Final" level="project" />
+     <orderEntry type="library" name="Maven: org.jboss.logging:jboss-logging:3.4.1.Final" level="project" />
+     <orderEntry type="library" name="Maven: com.fasterxml:classmate:1.5.1" level="project" />
+@@ -146,66 +238,8 @@
+     <orderEntry type="library" name="Maven: org.springframework:spring-context-support:5.2.8.RELEASE" level="project" />
+     <orderEntry type="library" name="Maven: com.stoyanr:evictor:1.0.0" level="project" />
+     <orderEntry type="library" name="Maven: com.netflix.ribbon:ribbon-eureka:2.3.0" level="project" />
+-    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.30" level="project" />
+     <orderEntry type="library" name="Maven: com.thoughtworks.xstream:xstream:1.4.11.1" level="project" />
+     <orderEntry type="library" name="Maven: xmlpull:xmlpull:1.1.3.1" level="project" />
+     <orderEntry type="library" name="Maven: xpp3:xpp3_min:1.1.4c" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-actuator:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-logging:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.2.3" level="project" />
+-    <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.2.3" level="project" />
+-    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-to-slf4j:2.13.3" level="project" />
+-    <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.13.3" level="project" />
+-    <orderEntry type="library" name="Maven: org.slf4j:jul-to-slf4j:1.7.30" level="project" />
+-    <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.26" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-actuator-autoconfigure:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-actuator:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" scope="RUNTIME" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.2" level="project" />
+-    <orderEntry type="library" name="Maven: io.micrometer:micrometer-core:1.5.4" level="project" />
+-    <orderEntry type="library" name="Maven: org.hdrhistogram:HdrHistogram:2.1.12" level="project" />
+-    <orderEntry type="library" scope="RUNTIME" name="Maven: org.latencyutils:LatencyUtils:2.0.3" level="project" />
+-    <orderEntry type="library" name="Maven: org.projectlombok:lombok:1.18.12" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.springframework.boot:spring-boot-starter-test:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.springframework.boot:spring-boot-test:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.springframework.boot:spring-boot-test-autoconfigure:2.3.3.RELEASE" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: com.jayway.jsonpath:json-path:2.4.0" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: net.minidev:json-smart:2.3" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: net.minidev:accessors-smart:1.2" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.ow2.asm:asm:5.0.4" level="project" />
+-    <orderEntry type="library" name="Maven: jakarta.xml.bind:jakarta.xml.bind-api:2.3.3" level="project" />
+-    <orderEntry type="library" name="Maven: jakarta.activation:jakarta.activation-api:1.2.2" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.assertj:assertj-core:3.16.1" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest:2.2" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter:5.6.2" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-api:5.6.2" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.apiguardian:apiguardian-api:1.1.0" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.opentest4j:opentest4j:1.2.0" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.junit.platform:junit-platform-commons:1.6.2" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-params:5.6.2" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-engine:5.6.2" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.junit.platform:junit-platform-engine:1.6.2" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-core:3.3.3" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy:1.10.14" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy-agent:1.10.14" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.objenesis:objenesis:2.6" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-junit-jupiter:3.3.3" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.skyscreamer:jsonassert:1.5.0" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: com.vaadin.external.google:android-json:0.0.20131108.vaadin1" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework:spring-core:5.2.8.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework:spring-jcl:5.2.8.RELEASE" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.springframework:spring-test:5.2.8.RELEASE" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.xmlunit:xmlunit-core:2.7.0" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.12" level="project" />
+-    <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-core:2.2" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework.amqp:spring-rabbit:2.2.10.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: com.rabbitmq:amqp-client:5.9.0" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework.amqp:spring-amqp:2.2.10.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework.retry:spring-retry:1.2.5.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.8.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework:spring-aop:5.2.8.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework:spring-expression:5.2.8.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework:spring-messaging:5.2.8.RELEASE" level="project" />
+-    <orderEntry type="library" name="Maven: org.springframework:spring-tx:5.2.8.RELEASE" level="project" />
+   </component>
+ </module>
+\ No newline at end of file
+Index: view/src/main/java/com/deutsche/view/BotApp.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.deutsche.view;\r\n\r\nimport org.springframework.boot.SpringApplication;\r\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\r\nimport org.springframework.cloud.netflix.eureka.EnableEurekaClient;\r\nimport org.telegram.telegrambots.ApiContextInitializer;\r\n\r\n@SpringBootApplication\r\n@EnableEurekaClient\r\npublic class BotApp {\r\n    public static void main(String[] args) {\r\n        ApiContextInitializer.init();\r\n        SpringApplication.run(ViewConf.class, args);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/BotApp.java	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ view/src/main/java/com/deutsche/view/BotApp.java	(date 1600561538793)
+@@ -2,11 +2,10 @@
+ 
+ import org.springframework.boot.SpringApplication;
+ import org.springframework.boot.autoconfigure.SpringBootApplication;
+-import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+ import org.telegram.telegrambots.ApiContextInitializer;
+ 
+ @SpringBootApplication
+-@EnableEurekaClient
++//@EnableEurekaClient
+ public class BotApp {
+     public static void main(String[] args) {
+         ApiContextInitializer.init();
+Index: view/src/main/java/com/deutsche/view/commands/functions/Classification.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/commands/functions/Classification.java	(date 1600557122631)
++++ view/src/main/java/com/deutsche/view/commands/functions/Classification.java	(date 1600557122631)
+@@ -0,0 +1,13 @@
++package com.deutsche.view.commands.functions;
++
++import org.json.JSONObject;
++
++import java.util.function.Function;
++
++public class Classification implements Function<JSONObject, String> {
++
++    @Override
++    public String apply(JSONObject jsonObject) {
++        return null;
++    }
++}
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"ALL\" />\r\n  </component>\r\n  <component name=\"BranchesTreeState\">\r\n    <expand>\r\n      <path>\r\n        <item name=\"ROOT\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n        <item name=\"LOCAL_ROOT\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n      </path>\r\n      <path>\r\n        <item name=\"ROOT\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n        <item name=\"REMOTE_ROOT\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n      </path>\r\n      <path>\r\n        <item name=\"ROOT\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n        <item name=\"REMOTE_ROOT\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n        <item name=\"GROUP_NODE:project\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n      </path>\r\n    </expand>\r\n    <select>\r\n      <path>\r\n        <item name=\"ROOT\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n        <item name=\"REMOTE_ROOT\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n        <item name=\"GROUP_NODE:project\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n        <item name=\"BRANCH:project/operator\" type=\"e8cecc67:BranchNodeDescriptor\" />\r\n      </path>\r\n    </select>\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"95d2b335-202e-43b5-ad60-c728f1cc2ce7\" name=\"Default Changelist\" comment=\"add eureka\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/methods/Posts.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/methods/Posts.java\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"CodeInsightWorkspaceSettings\">\r\n    <option name=\"optimizeImportsOnTheFly\" value=\"true\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"JUnit5 Test Class\" />\r\n        <option value=\"Enum\" />\r\n        <option value=\"Interface\" />\r\n        <option value=\"Class\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"view_telegram\" />\r\n      </map>\r\n    </option>\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitToolBoxStore\">\r\n    <option name=\"projectConfigVersion\" value=\"2\" />\r\n    <option name=\"recentBranches\">\r\n      <RecentBranches>\r\n        <option name=\"branchesForRepo\">\r\n          <list>\r\n            <RecentBranchesForRepo>\r\n              <option name=\"branches\">\r\n                <list>\r\n                  <RecentBranch>\r\n                    <option name=\"branchName\" value=\"operator\" />\r\n                    <option name=\"lastUsedInstant\" value=\"1600343796\" />\r\n                  </RecentBranch>\r\n                  <RecentBranch>\r\n                    <option name=\"branchName\" value=\"channels-messages\" />\r\n                    <option name=\"lastUsedInstant\" value=\"1600184663\" />\r\n                  </RecentBranch>\r\n                  <RecentBranch>\r\n                    <option name=\"branchName\" value=\"master\" />\r\n                    <option name=\"lastUsedInstant\" value=\"1600184617\" />\r\n                  </RecentBranch>\r\n                  <RecentBranch>\r\n                    <option name=\"branchName\" value=\"view_telegram\" />\r\n                    <option name=\"lastUsedInstant\" value=\"1600094141\" />\r\n                  </RecentBranch>\r\n                </list>\r\n              </option>\r\n              <option name=\"repositoryRootUrl\" value=\"file://$PROJECT_DIR$\" />\r\n            </RecentBranchesForRepo>\r\n          </list>\r\n        </option>\r\n      </RecentBranches>\r\n    </option>\r\n  </component>\r\n  <component name=\"MavenImportPreferences\">\r\n    <option name=\"generalSettings\">\r\n      <MavenGeneralSettings>\r\n        <option name=\"mavenHome\" value=\"C:\\Program Files\\JetBrains\\IntelliJ IDEA 2020.2.1\\plugins\\maven\\lib\\maven3\" />\r\n      </MavenGeneralSettings>\r\n    </option>\r\n  </component>\r\n  <component name=\"ProjectId\" id=\"1hFOG02qO9GvuLjxXqBChLuR43F\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\">\r\n    <ConfirmationsSetting value=\"2\" id=\"Add\" />\r\n  </component>\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">\r\n    <property name=\"RequestMappingsPanelOrder0\" value=\"0\" />\r\n    <property name=\"RequestMappingsPanelOrder1\" value=\"1\" />\r\n    <property name=\"RequestMappingsPanelWidth0\" value=\"75\" />\r\n    <property name=\"RequestMappingsPanelWidth1\" value=\"75\" />\r\n    <property name=\"RunOnceActivity.OpenProjectViewOnStart\" value=\"true\" />\r\n    <property name=\"SHARE_PROJECT_CONFIGURATION_FILES\" value=\"true\" />\r\n    <property name=\"WebServerToolWindowFactoryState\" value=\"false\" />\r\n    <property name=\"aspect.path.notification.shown\" value=\"true\" />\r\n    <property name=\"com.intellij.openapi.externalSystem.service.settings.ExternalSystemGroupConfigurable\" value=\"ALL\" />\r\n    <property name=\"com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary\" value=\"JUnit5\" />\r\n    <property name=\"com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5\" value=\"\" />\r\n    <property name=\"last_directory_selection\" value=\"$PROJECT_DIR$/src/main/java/com/deutsche/view\" />\r\n    <property name=\"last_opened_file_path\" value=\"$PROJECT_DIR$/groups\" />\r\n    <property name=\"nodejs_package_manager_path\" value=\"npm\" />\r\n    <property name=\"project.structure.last.edited\" value=\"Facets\" />\r\n    <property name=\"project.structure.proportion\" value=\"0.15\" />\r\n    <property name=\"project.structure.side.proportion\" value=\"0.2\" />\r\n    <property name=\"settings.editor.selected.configurable\" value=\"MavenSettings\" />\r\n  </component>\r\n  <component name=\"ReactorSettings\">\r\n    <option name=\"notificationShown\" value=\"true\" />\r\n  </component>\r\n  <component name=\"RecentsManager\">\r\n    <key name=\"CreateTestDialog.RecentsKey\">\r\n      <recent name=\"com.deutsche.view.handlers\" />\r\n      <recent name=\"com.deutsche.services\" />\r\n      <recent name=\"com.deutsche.users.dao\" />\r\n    </key>\r\n    <key name=\"CreateTestDialog.Recents.Supers\">\r\n      <recent name=\"\" />\r\n    </key>\r\n    <key name=\"MoveClassesOrPackagesDialog.RECENTS_KEY\">\r\n      <recent name=\"com.deutsche.users\" />\r\n      <recent name=\"com.deutsche\" />\r\n    </key>\r\n    <key name=\"CopyClassDialog.RECENTS_KEY\">\r\n      <recent name=\"com.deutsche.view.errors\" />\r\n      <recent name=\"com.deutsche.operator.rabbit\" />\r\n      <recent name=\"com.deutsche.view.models\" />\r\n    </key>\r\n    <key name=\"CopyFile.RECENT_KEYS\">\r\n      <recent name=\"C:\\Users\\Artem\\javaSchool\\channel-analysis\\view\\src\\main\\resources\" />\r\n      <recent name=\"C:\\Users\\Artem\\javaSchool\\channel-analysis\\groups\\src\\main\\resources\" />\r\n      <recent name=\"C:\\Users\\Artem\\javaSchool\\testTelegramBot\\src\\main\\resources\" />\r\n      <recent name=\"C:\\Users\\Artem\\javaSchool\\testTelegramBot\\src\\main\\java\\com\\deutsche\\view\" />\r\n      <recent name=\"C:\\Users\\Artem\\javaSchool\\testTelegramBot\\src\\main\\java\" />\r\n    </key>\r\n    <key name=\"CreateClassDialog.RecentsKey\">\r\n      <recent name=\"com.deutsche.view.handlers\" />\r\n      <recent name=\"com.deutsche.groups.services\" />\r\n    </key>\r\n  </component>\r\n  <component name=\"RunAnythingCache\">\r\n    <option name=\"myCommands\">\r\n      <command value=\"mvn install\" />\r\n    </option>\r\n  </component>\r\n  <component name=\"RunDashboard\">\r\n    <option name=\"configurationTypes\">\r\n      <set>\r\n        <option value=\"SpringBootApplicationConfigurationType\" />\r\n      </set>\r\n    </option>\r\n  </component>\r\n  <component name=\"RunManager\" selected=\"Spring Boot.BotApp (1)\">\r\n    <configuration name=\"Example\" type=\"Application\" factoryName=\"Application\" temporary=\"true\" nameIsGenerated=\"true\">\r\n      <option name=\"MAIN_CLASS_NAME\" value=\"com.deutsche.groups.Example\" />\r\n      <module name=\"channel-analysis\" />\r\n      <extension name=\"coverage\">\r\n        <pattern>\r\n          <option name=\"PATTERN\" value=\"com.deutsche.groups.*\" />\r\n          <option name=\"ENABLED\" value=\"true\" />\r\n        </pattern>\r\n      </extension>\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration default=\"true\" type=\"ArquillianJUnit\" factoryName=\"\" nameIsGenerated=\"true\">\r\n      <option name=\"arquillianRunConfiguration\">\r\n        <value>\r\n          <option name=\"containerStateName\" value=\"\" />\r\n        </value>\r\n      </option>\r\n      <option name=\"TEST_OBJECT\" value=\"class\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"App\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\">\r\n      <module name=\"testTelegramBot\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.deutsche.App\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"BotApp (1)\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" singleton=\"false\" temporary=\"true\" nameIsGenerated=\"true\">\r\n      <module name=\"view\" />\r\n      <extension name=\"coverage\">\r\n        <pattern>\r\n          <option name=\"PATTERN\" value=\"com.deutsche.view.*\" />\r\n          <option name=\"ENABLED\" value=\"true\" />\r\n        </pattern>\r\n      </extension>\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.deutsche.view.BotApp\" />\r\n      <option name=\"ALTERNATIVE_JRE_PATH\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"ConfigServerApplication (1)\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\r\n      <module name=\"discovery-service\" />\r\n      <extension name=\"coverage\">\r\n        <pattern>\r\n          <option name=\"PATTERN\" value=\"com.duetsche.configserver.*\" />\r\n          <option name=\"ENABLED\" value=\"true\" />\r\n        </pattern>\r\n      </extension>\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.duetsche.configserver.ConfigServerApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"ConfigServerApplication (2)\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\r\n      <module name=\"discovery-service\" />\r\n      <extension name=\"coverage\">\r\n        <pattern>\r\n          <option name=\"PATTERN\" value=\"com.deutsche.configserver.*\" />\r\n          <option name=\"ENABLED\" value=\"true\" />\r\n        </pattern>\r\n      </extension>\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.deutsche.configserver.ConfigServerApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"ConfigServerApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\">\r\n      <module name=\"config-server\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.duetsche.configserver.ConfigServerApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"DiscoveryServiceApplication (1)\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" temporary=\"true\" nameIsGenerated=\"true\">\r\n      <module name=\"config-server\" />\r\n      <extension name=\"coverage\">\r\n        <pattern>\r\n          <option name=\"PATTERN\" value=\"com.deutsche.discoveryservice.*\" />\r\n          <option name=\"ENABLED\" value=\"true\" />\r\n        </pattern>\r\n      </extension>\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.deutsche.discoveryservice.DiscoveryServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"DiscoveryServiceApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\">\r\n      <module name=\"discovery-service\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.deutsche.discoveryservice.DiscoveryServiceApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"GroupsApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" singleton=\"false\">\r\n      <module name=\"groups\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.deutsche.groups.GroupsApplication\" />\r\n      <option name=\"ALTERNATIVE_JRE_PATH\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <configuration name=\"OperatorApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\">\r\n      <module name=\"operator\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"com.deutsche.operator.OperatorApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n    <list>\r\n      <item itemvalue=\"Application.Example\" />\r\n      <item itemvalue=\"Spring Boot.App\" />\r\n      <item itemvalue=\"Spring Boot.ConfigServerApplication\" />\r\n      <item itemvalue=\"Spring Boot.DiscoveryServiceApplication\" />\r\n      <item itemvalue=\"Spring Boot.GroupsApplication\" />\r\n      <item itemvalue=\"Spring Boot.OperatorApplication\" />\r\n      <item itemvalue=\"Spring Boot.BotApp (1)\" />\r\n      <item itemvalue=\"Spring Boot.ConfigServerApplication (1)\" />\r\n      <item itemvalue=\"Spring Boot.ConfigServerApplication (2)\" />\r\n      <item itemvalue=\"Spring Boot.DiscoveryServiceApplication (1)\" />\r\n    </list>\r\n    <recent_temporary>\r\n      <list>\r\n        <item itemvalue=\"Spring Boot.BotApp (1)\" />\r\n        <item itemvalue=\"Spring Boot.ConfigServerApplication (2)\" />\r\n        <item itemvalue=\"Spring Boot.ConfigServerApplication (1)\" />\r\n        <item itemvalue=\"Spring Boot.DiscoveryServiceApplication (1)\" />\r\n        <item itemvalue=\"Application.Example\" />\r\n      </list>\r\n    </recent_temporary>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"95d2b335-202e-43b5-ad60-c728f1cc2ce7\" name=\"Default Changelist\" comment=\"\" />\r\n      <created>1599603277554</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1599603277554</updated>\r\n      <workItem from=\"1599603278615\" duration=\"4988000\" />\r\n      <workItem from=\"1599684328496\" duration=\"41000\" />\r\n      <workItem from=\"1599934495774\" duration=\"689000\" />\r\n      <workItem from=\"1599935204579\" duration=\"2568000\" />\r\n      <workItem from=\"1599937812352\" duration=\"9677000\" />\r\n      <workItem from=\"1600090097971\" duration=\"34589000\" />\r\n      <workItem from=\"1600184475669\" duration=\"15000\" />\r\n      <workItem from=\"1600184587413\" duration=\"450000\" />\r\n      <workItem from=\"1600190510933\" duration=\"908000\" />\r\n      <workItem from=\"1600191437602\" duration=\"2463000\" />\r\n      <workItem from=\"1600244449755\" duration=\"9078000\" />\r\n      <workItem from=\"1600338384344\" duration=\"1258000\" />\r\n      <workItem from=\"1600340188404\" duration=\"1915000\" />\r\n      <workItem from=\"1600342135513\" duration=\"3131000\" />\r\n      <workItem from=\"1600346417116\" duration=\"1143000\" />\r\n      <workItem from=\"1600347578192\" duration=\"4373000\" />\r\n      <workItem from=\"1600353136792\" duration=\"35420000\" />\r\n      <workItem from=\"1600519649749\" duration=\"354000\" />\r\n      <workItem from=\"1600520022017\" duration=\"4826000\" />\r\n      <workItem from=\"1600537099255\" duration=\"13176000\" />\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"telegram UI is done\">\r\n      <created>1600131620845</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1600131620845</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"add tests, spring\">\r\n      <created>1600176106757</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1600176106757</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"refactor\">\r\n      <created>1600183843970</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1600183843970</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"add eureka\">\r\n      <created>1600343532598</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1600343532598</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"5\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State>\r\n              <option name=\"FILTERS\">\r\n                <map>\r\n                  <entry key=\"branch\">\r\n                    <value>\r\n                      <list>\r\n                        <option value=\"project/operator\" />\r\n                      </list>\r\n                    </value>\r\n                  </entry>\r\n                </map>\r\n              </option>\r\n            </State>\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n    <option name=\"oldMeFiltersMigrated\" value=\"true\" />\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"telegram UI is done\" />\r\n    <MESSAGE value=\"add tests, spring\" />\r\n    <MESSAGE value=\"refactor\" />\r\n    <MESSAGE value=\"add eureka\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"add eureka\" />\r\n  </component>\r\n  <component name=\"WindowStateProjectService\">\r\n    <state x=\"764\" y=\"91\" key=\"#Auto_Import\" timestamp=\"1599938234617\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"764\" y=\"91\" key=\"#Auto_Import/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599938234617\" />\r\n    <state x=\"628\" y=\"221\" key=\"#Inspections\" timestamp=\"1600347257166\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"628\" y=\"221\" key=\"#Inspections/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600347257166\" />\r\n    <state x=\"617\" y=\"221\" key=\"#Inspections/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600174590506\" />\r\n    <state x=\"583\" y=\"201\" width=\"816\" height=\"724\" key=\"#Intentions\" timestamp=\"1599938799157\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"583\" y=\"201\" width=\"816\" height=\"724\" key=\"#Intentions/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599938799157\" />\r\n    <state x=\"761\" y=\"366\" key=\"#Notifications\" timestamp=\"1600342266237\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"761\" y=\"366\" key=\"#Notifications/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600342266237\" />\r\n    <state x=\"583\" y=\"183\" key=\"#Plugins\" timestamp=\"1599946510435\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"583\" y=\"183\" key=\"#Plugins/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599946510435\" />\r\n    <state x=\"350\" y=\"8\" key=\"#Project_Structure\" timestamp=\"1600531611785\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"-1640\" y=\"16\" key=\"#Project_Structure/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600420684979\" />\r\n    <state x=\"350\" y=\"8\" key=\"#Project_Structure/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600531611785\" />\r\n    <state x=\"337\" y=\"8\" key=\"#Project_Structure/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600183499488\" />\r\n    <state x=\"280\" y=\"6\" key=\"#Project_Structure/62.0.1474.864@62.0.1474.864\" timestamp=\"1599607578666\" />\r\n    <state x=\"453\" y=\"197\" width=\"902\" height=\"606\" key=\"#com.intellij.execution.impl.EditConfigurationsDialog\" timestamp=\"1600529899586\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"-1558\" y=\"168\" width=\"902\" height=\"606\" key=\"#com.intellij.execution.impl.EditConfigurationsDialog/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600434652269\" />\r\n    <state x=\"453\" y=\"197\" width=\"1092\" height=\"757\" key=\"#com.intellij.execution.impl.EditConfigurationsDialog/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600529899586\" />\r\n    <state x=\"892\" y=\"177\" key=\"#com.intellij.ide.util.MemberChooser\" timestamp=\"1600467570525\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"-1207\" y=\"152\" key=\"#com.intellij.ide.util.MemberChooser/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600434878167\" />\r\n    <state x=\"892\" y=\"177\" key=\"#com.intellij.ide.util.MemberChooser/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600467570525\" />\r\n    <state x=\"883\" y=\"177\" key=\"#com.intellij.ide.util.MemberChooser/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600296473089\" />\r\n    <state x=\"605\" y=\"138\" key=\"#com.intellij.ide.util.MemberChooser/62.0.1474.864@62.0.1474.864\" timestamp=\"1599606734555\" />\r\n    <state x=\"721\" y=\"320\" key=\"#com.intellij.ide.util.PackageChooserDialog\" timestamp=\"1599937550769\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"721\" y=\"320\" key=\"#com.intellij.ide.util.PackageChooserDialog/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599937550769\" />\r\n    <state x=\"-1380\" y=\"378\" key=\"#com.intellij.refactoring.move.MoveHandler.SelectRefactoringDialog\" timestamp=\"1600090155790\">\r\n      <screen x=\"-1870\" y=\"10\" width=\"1486\" height=\"864\" />\r\n    </state>\r\n    <state x=\"-1380\" y=\"378\" key=\"#com.intellij.refactoring.move.MoveHandler.SelectRefactoringDialog/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600090155790\" />\r\n    <state x=\"675\" y=\"460\" key=\"#com.intellij.refactoring.move.MoveHandler.SelectRefactoringDialog/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599945484638\" />\r\n    <state x=\"785\" y=\"417\" key=\"#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes\" timestamp=\"1599937708777\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"785\" y=\"417\" key=\"#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599937708777\" />\r\n    <state x=\"-1286\" y=\"355\" key=\"#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.packages\" timestamp=\"1600090167314\">\r\n      <screen x=\"-1870\" y=\"10\" width=\"1486\" height=\"864\" />\r\n    </state>\r\n    <state x=\"-1286\" y=\"355\" key=\"#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.packages/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600090167314\" />\r\n    <state x=\"792\" y=\"431\" key=\"#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.packages/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599945493884\" />\r\n    <state x=\"652\" y=\"0\" key=\"#com.intellij.refactoring.rename.AutomaticRenamingDialog\" timestamp=\"1600170037134\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"652\" y=\"0\" key=\"#com.intellij.refactoring.rename.AutomaticRenamingDialog/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600170037134\" />\r\n    <state x=\"721\" y=\"289\" key=\"#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog\" timestamp=\"1600183623616\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"721\" y=\"289\" key=\"#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600183623616\" />\r\n    <state x=\"721\" y=\"289\" key=\"#com.intellij.refactoring.typeMigration.ui.FailedConversionsDialog\" timestamp=\"1600117940134\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"721\" y=\"289\" key=\"#com.intellij.refactoring.typeMigration.ui.FailedConversionsDialog/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600117940134\" />\r\n    <state x=\"-1831\" y=\"290\" width=\"1447\" height=\"372\" key=\"#xdebugger.evaluate\" timestamp=\"1600547719058\">\r\n      <screen x=\"-1858\" y=\"10\" width=\"1474\" height=\"864\" />\r\n    </state>\r\n    <state x=\"-1831\" y=\"290\" width=\"1447\" height=\"372\" key=\"#xdebugger.evaluate/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600547719058\" />\r\n    <state x=\"-1635\" y=\"199\" width=\"882\" height=\"582\" key=\"#xdebugger.evaluate/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600265856601\" />\r\n    <state x=\"450\" y=\"459\" width=\"974\" height=\"583\" key=\"#xdebugger.evaluate/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600174846814\" />\r\n    <state x=\"501\" y=\"227\" key=\"FileChooserDialogImpl\" timestamp=\"1600538900048\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"-1526\" y=\"204\" key=\"FileChooserDialogImpl/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600423325949\" />\r\n    <state x=\"501\" y=\"227\" key=\"FileChooserDialogImpl/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600538900048\" />\r\n    <state x=\"481\" y=\"243\" key=\"FileChooserDialogImpl/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600296163679\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.0.bottom\" timestamp=\"1600550317054\">\r\n      <screen x=\"78\" y=\"0\" width=\"1458\" height=\"864\" />\r\n    </state>\r\n    <state width=\"1237\" height=\"244\" key=\"GridCell.Tab.0.bottom/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600528626967\" />\r\n    <state width=\"1507\" height=\"370\" key=\"GridCell.Tab.0.bottom/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549623533\" />\r\n    <state width=\"1431\" height=\"360\" key=\"GridCell.Tab.0.bottom/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600266195273\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.0.bottom/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600298770730\" />\r\n    <state width=\"1431\" height=\"319\" key=\"GridCell.Tab.0.bottom/62.0.1474.864@62.0.1474.864\" timestamp=\"1599608132703\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.0.bottom/78.0.1458.864@78.0.1458.864\" timestamp=\"1600550317054\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.0.center\" timestamp=\"1600550317054\">\r\n      <screen x=\"78\" y=\"0\" width=\"1458\" height=\"864\" />\r\n    </state>\r\n    <state width=\"1237\" height=\"244\" key=\"GridCell.Tab.0.center/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600528626967\" />\r\n    <state width=\"1507\" height=\"370\" key=\"GridCell.Tab.0.center/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549623533\" />\r\n    <state width=\"1431\" height=\"360\" key=\"GridCell.Tab.0.center/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600266195273\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.0.center/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600298770730\" />\r\n    <state width=\"1431\" height=\"319\" key=\"GridCell.Tab.0.center/62.0.1474.864@62.0.1474.864\" timestamp=\"1599608132701\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.0.center/78.0.1458.864@78.0.1458.864\" timestamp=\"1600550317054\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.0.left\" timestamp=\"1600550317054\">\r\n      <screen x=\"78\" y=\"0\" width=\"1458\" height=\"864\" />\r\n    </state>\r\n    <state width=\"1237\" height=\"244\" key=\"GridCell.Tab.0.left/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600528626967\" />\r\n    <state width=\"1507\" height=\"370\" key=\"GridCell.Tab.0.left/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549623533\" />\r\n    <state width=\"1431\" height=\"360\" key=\"GridCell.Tab.0.left/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600266195273\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.0.left/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600298770730\" />\r\n    <state width=\"1431\" height=\"319\" key=\"GridCell.Tab.0.left/62.0.1474.864@62.0.1474.864\" timestamp=\"1599608132701\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.0.left/78.0.1458.864@78.0.1458.864\" timestamp=\"1600550317054\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.0.right\" timestamp=\"1600550317054\">\r\n      <screen x=\"78\" y=\"0\" width=\"1458\" height=\"864\" />\r\n    </state>\r\n    <state width=\"1237\" height=\"244\" key=\"GridCell.Tab.0.right/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600528626967\" />\r\n    <state width=\"1507\" height=\"370\" key=\"GridCell.Tab.0.right/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549623533\" />\r\n    <state width=\"1431\" height=\"360\" key=\"GridCell.Tab.0.right/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600266195273\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.0.right/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600298770730\" />\r\n    <state width=\"1431\" height=\"319\" key=\"GridCell.Tab.0.right/62.0.1474.864@62.0.1474.864\" timestamp=\"1599608132702\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.0.right/78.0.1458.864@78.0.1458.864\" timestamp=\"1600550317054\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.1.bottom\" timestamp=\"1600550317055\">\r\n      <screen x=\"78\" y=\"0\" width=\"1458\" height=\"864\" />\r\n    </state>\r\n    <state width=\"1237\" height=\"244\" key=\"GridCell.Tab.1.bottom/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600528626967\" />\r\n    <state width=\"1507\" height=\"370\" key=\"GridCell.Tab.1.bottom/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549623534\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.1.bottom/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600265930227\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.1.bottom/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600298770731\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.1.bottom/78.0.1458.864@78.0.1458.864\" timestamp=\"1600550317055\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.1.center\" timestamp=\"1600550317055\">\r\n      <screen x=\"78\" y=\"0\" width=\"1458\" height=\"864\" />\r\n    </state>\r\n    <state width=\"1237\" height=\"244\" key=\"GridCell.Tab.1.center/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600528626967\" />\r\n    <state width=\"1507\" height=\"370\" key=\"GridCell.Tab.1.center/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549623533\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.1.center/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600265930226\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.1.center/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600298770730\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.1.center/78.0.1458.864@78.0.1458.864\" timestamp=\"1600550317055\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.1.left\" timestamp=\"1600550317055\">\r\n      <screen x=\"78\" y=\"0\" width=\"1458\" height=\"864\" />\r\n    </state>\r\n    <state width=\"1237\" height=\"244\" key=\"GridCell.Tab.1.left/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600528626967\" />\r\n    <state width=\"1507\" height=\"370\" key=\"GridCell.Tab.1.left/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549623533\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.1.left/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600265930226\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.1.left/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600298770730\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.1.left/78.0.1458.864@78.0.1458.864\" timestamp=\"1600550317055\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.1.right\" timestamp=\"1600550317055\">\r\n      <screen x=\"78\" y=\"0\" width=\"1458\" height=\"864\" />\r\n    </state>\r\n    <state width=\"1237\" height=\"244\" key=\"GridCell.Tab.1.right/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600528626967\" />\r\n    <state width=\"1507\" height=\"370\" key=\"GridCell.Tab.1.right/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549623534\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.1.right/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600265930226\" />\r\n    <state width=\"1431\" height=\"402\" key=\"GridCell.Tab.1.right/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600298770731\" />\r\n    <state width=\"1180\" height=\"370\" key=\"GridCell.Tab.1.right/78.0.1458.864@78.0.1458.864\" timestamp=\"1600550317055\" />\r\n    <state width=\"1507\" height=\"421\" key=\"GridCell.Tab.2.bottom\" timestamp=\"1600549081012\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state width=\"1562\" height=\"530\" key=\"GridCell.Tab.2.bottom/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600466083484\" />\r\n    <state width=\"1507\" height=\"421\" key=\"GridCell.Tab.2.bottom/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549081012\" />\r\n    <state width=\"1562\" height=\"386\" key=\"GridCell.Tab.2.bottom/78.0.1458.864@78.0.1458.864\" timestamp=\"1600473208345\" />\r\n    <state width=\"1507\" height=\"421\" key=\"GridCell.Tab.2.center\" timestamp=\"1600549081012\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state width=\"1562\" height=\"530\" key=\"GridCell.Tab.2.center/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600466083484\" />\r\n    <state width=\"1507\" height=\"421\" key=\"GridCell.Tab.2.center/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549081012\" />\r\n    <state width=\"1562\" height=\"386\" key=\"GridCell.Tab.2.center/78.0.1458.864@78.0.1458.864\" timestamp=\"1600473208345\" />\r\n    <state width=\"1507\" height=\"421\" key=\"GridCell.Tab.2.left\" timestamp=\"1600549081012\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state width=\"1562\" height=\"530\" key=\"GridCell.Tab.2.left/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600466083484\" />\r\n    <state width=\"1507\" height=\"421\" key=\"GridCell.Tab.2.left/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549081012\" />\r\n    <state width=\"1562\" height=\"386\" key=\"GridCell.Tab.2.left/78.0.1458.864@78.0.1458.864\" timestamp=\"1600473208345\" />\r\n    <state width=\"1507\" height=\"421\" key=\"GridCell.Tab.2.right\" timestamp=\"1600549081012\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state width=\"1562\" height=\"530\" key=\"GridCell.Tab.2.right/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600466083484\" />\r\n    <state width=\"1507\" height=\"421\" key=\"GridCell.Tab.2.right/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600549081012\" />\r\n    <state width=\"1562\" height=\"386\" key=\"GridCell.Tab.2.right/78.0.1458.864@78.0.1458.864\" timestamp=\"1600473208345\" />\r\n    <state x=\"571\" y=\"277\" key=\"IDE.errors.dialog\" timestamp=\"1600131486963\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"571\" y=\"277\" key=\"IDE.errors.dialog/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600131486963\" />\r\n    <state x=\"431\" y=\"229\" key=\"Maven.ArtifactSearchDialog\" timestamp=\"1600244704540\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"431\" y=\"229\" key=\"Maven.ArtifactSearchDialog/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600244704540\" />\r\n    <state x=\"-1858\" y=\"10\" key=\"MergeDialog\" timestamp=\"1600419989783\">\r\n      <screen x=\"-1858\" y=\"10\" width=\"1474\" height=\"864\" />\r\n    </state>\r\n    <state x=\"-1858\" y=\"10\" key=\"MergeDialog/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600419989783\" />\r\n    <state x=\"-1456\" y=\"121\" key=\"MultipleFileMergeDialog\" timestamp=\"1600419989787\">\r\n      <screen x=\"-1858\" y=\"10\" width=\"1474\" height=\"864\" />\r\n    </state>\r\n    <state x=\"-1456\" y=\"121\" key=\"MultipleFileMergeDialog/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600419989787\" />\r\n    <state x=\"388\" y=\"176\" width=\"1040\" height=\"847\" key=\"SettingsEditor\" timestamp=\"1600543507770\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"-1640\" y=\"16\" key=\"SettingsEditor/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600340444828\" />\r\n    <state x=\"388\" y=\"176\" width=\"1040\" height=\"847\" key=\"SettingsEditor/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600543507770\" />\r\n    <state x=\"-1609\" y=\"29\" key=\"SettingsEditor/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600165882053\" />\r\n    <state x=\"337\" y=\"8\" key=\"SettingsEditor/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600182452286\" />\r\n    <state x=\"280\" y=\"6\" key=\"SettingsEditor/62.0.1474.864@62.0.1474.864\" timestamp=\"1599608208545\" />\r\n    <state width=\"618\" height=\"647\" key=\"SwitcherDM\" timestamp=\"1600467627383\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state width=\"618\" height=\"647\" key=\"SwitcherDM/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600467627383\" />\r\n    <state width=\"498\" height=\"517\" key=\"SwitcherDM/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864\" timestamp=\"1600166551977\" />\r\n    <state width=\"498\" height=\"508\" key=\"SwitcherDM/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599944944156\" />\r\n    <state x=\"455\" y=\"366\" width=\"816\" height=\"554\" key=\"Vcs.Push.Dialog.v2\" timestamp=\"1600343547866\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"455\" y=\"366\" key=\"Vcs.Push.Dialog.v2/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600343547866\" />\r\n    <state x=\"442\" y=\"366\" width=\"816\" height=\"554\" key=\"Vcs.Push.Dialog.v2/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600183889731\" />\r\n    <state width=\"929\" height=\"548\" key=\"XDebugger.FullValuePopup\" timestamp=\"1600469867260\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state width=\"929\" height=\"548\" key=\"XDebugger.FullValuePopup/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600469867260\" />\r\n    <state x=\"807\" y=\"320\" key=\"chooseDestDirectoryDialog\" timestamp=\"1600164786368\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"807\" y=\"320\" key=\"chooseDestDirectoryDialog/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600164786368\" />\r\n    <state x=\"762\" y=\"366\" key=\"com.intellij.testIntegration.createTest.CreateTestDialog\" timestamp=\"1600166205381\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"762\" y=\"366\" key=\"com.intellij.testIntegration.createTest.CreateTestDialog/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600166205381\" />\r\n    <state x=\"468\" y=\"149\" width=\"733\" height=\"834\" key=\"find.popup\" timestamp=\"1599937519354\">\r\n      <screen x=\"62\" y=\"0\" width=\"1858\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"468\" y=\"149\" width=\"733\" height=\"834\" key=\"find.popup/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599937519354\" />\r\n    <state x=\"508\" y=\"165\" width=\"581\" height=\"534\" key=\"find.popup/62.0.1474.864@62.0.1474.864\" timestamp=\"1599607626238\" />\r\n    <state x=\"-1380\" y=\"170\" key=\"git4idea.branch.GitSmartOperationDialog\" timestamp=\"1600528661062\">\r\n      <screen x=\"-1858\" y=\"10\" width=\"1474\" height=\"864\" />\r\n    </state>\r\n    <state x=\"-1380\" y=\"170\" key=\"git4idea.branch.GitSmartOperationDialog/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600528661062\" />\r\n    <state x=\"340\" y=\"191\" key=\"new project wizard\" timestamp=\"1600353033308\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"-1648\" y=\"163\" key=\"new project wizard/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600341015738\" />\r\n    <state x=\"340\" y=\"191\" key=\"new project wizard/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600353033308\" />\r\n    <state x=\"543\" y=\"243\" key=\"new project wizard/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600297800928\" />\r\n    <state x=\"658\" y=\"250\" width=\"672\" height=\"677\" key=\"run.anything.popup\" timestamp=\"1600537041144\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"658\" y=\"250\" width=\"672\" height=\"677\" key=\"run.anything.popup/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600537041144\" />\r\n    <state x=\"647\" y=\"250\" key=\"run.anything.popup/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599935034236\" />\r\n    <state x=\"665\" y=\"235\" width=\"840\" height=\"679\" key=\"search.everywhere.popup\" timestamp=\"1600543524930\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"-1388\" y=\"198\" width=\"672\" height=\"543\" key=\"search.everywhere.popup/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864\" timestamp=\"1600434591115\" />\r\n    <state x=\"665\" y=\"235\" width=\"840\" height=\"679\" key=\"search.everywhere.popup/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600543524930\" />\r\n    <state x=\"654\" y=\"235\" width=\"672\" height=\"678\" key=\"search.everywhere.popup/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1599946497468\" />\r\n    <state x=\"496\" y=\"354\" key=\"spring file set editor\" timestamp=\"1600543505210\">\r\n      <screen x=\"78\" y=\"0\" width=\"1842\" height=\"1080\" />\r\n    </state>\r\n    <state x=\"496\" y=\"354\" key=\"spring file set editor/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080\" timestamp=\"1600543505210\" />\r\n    <state x=\"537\" y=\"122\" key=\"spring file set editor/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080\" timestamp=\"1600172069528\" />\r\n  </component>\r\n  <component name=\"XDebuggerManager\">\r\n    <pin-to-top-manager>\r\n      <pinned-members>\r\n        <PinnedItemInfo parentTag=\"com.deutsche.view.Bot\" memberName=\"handler\" />\r\n        <PinnedItemInfo parentTag=\"com.deutsche.users.dao.UserDaoTest\" memberName=\"userDao\" />\r\n      </pinned-members>\r\n    </pin-to-top-manager>\r\n  </component>\r\n  <component name=\"XSLT-Support.FileAssociations.UIState\">\r\n    <expand />\r\n    <select />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/workspace.xml	(revision a621b0a1ecf271a86bc45aad7173579c98496aa2)
++++ .idea/workspace.xml	(date 1600564995859)
+@@ -24,14 +24,40 @@
+         <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+         <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+         <item name="GROUP_NODE:project" type="e8cecc67:BranchNodeDescriptor" />
+-        <item name="BRANCH:project/operator" type="e8cecc67:BranchNodeDescriptor" />
++        <item name="BRANCH:project/Mock_endpoints" type="e8cecc67:BranchNodeDescriptor" />
+       </path>
+     </select>
+   </component>
+   <component name="ChangeListManager">
+     <list default="true" id="95d2b335-202e-43b5-ad60-c728f1cc2ce7" name="Default Changelist" comment="add eureka">
++      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_20_09_2020_1_10__Default_Changelist_.xml" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/commands/Functionality.java" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/commands/functions/Classification.java" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/commands/functions/Repetitions.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_json_json_20160810.xml" beforeDir="false" />
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/groups/src/main/java/com/deutsche/groups/services/VkDataServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/groups/src/main/java/com/deutsche/groups/services/VkDataServiceImpl.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/groups/test.http" beforeDir="false" afterPath="$PROJECT_DIR$/groups/test.http" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/operator/src/main/java/com/deutsche/operator/rabbit/RabbitConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/operator/src/main/java/com/deutsche/operator/rabbit/RabbitConfiguration.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/operator/src/main/java/com/deutsche/operator/services/RestService.java" beforeDir="false" afterPath="$PROJECT_DIR$/operator/src/main/java/com/deutsche/operator/services/RestService.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/operator/src/main/java/com/deutsche/operator/services/TelegramCommandsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/operator/src/main/java/com/deutsche/operator/services/TelegramCommandsService.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/view/pom.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/Bot.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/Bot.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/BotApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/BotApp.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/controllers/BotController.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/controllers/BotController.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/handlers/ResponseHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/handlers/ResponseHandler.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/Buttons.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/Buttons.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/methods/CategorizeChannel.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/methods/CategorizeChannel.java" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/methods/Posts.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/methods/Posts.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/methods/WordFromChannel.java" beforeDir="false" afterPath="$PROJECT_DIR$/view/src/main/java/com/deutsche/view/tools/methods/WordFromChannel.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/view/src/main/resources/application.properties" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/src/main/resources/bootstrap.yml" beforeDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/target/classes/bootstrap.yml" beforeDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/target/classes/com/deutsche/view/Bot.class" beforeDir="false" afterPath="$PROJECT_DIR$/view/target/classes/com/deutsche/view/Bot.class" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/target/classes/com/deutsche/view/BotApp.class" beforeDir="false" afterPath="$PROJECT_DIR$/view/target/classes/com/deutsche/view/BotApp.class" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/target/classes/com/deutsche/view/controllers/BotController.class" beforeDir="false" afterPath="$PROJECT_DIR$/view/target/classes/com/deutsche/view/controllers/BotController.class" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/target/classes/com/deutsche/view/tools/methods/WordFromChannel.class" beforeDir="false" afterPath="$PROJECT_DIR$/view/target/classes/com/deutsche/view/tools/methods/WordFromChannel.class" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/view/view.iml" beforeDir="false" afterPath="$PROJECT_DIR$/view/view.iml" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -54,7 +80,7 @@
+   <component name="Git.Settings">
+     <option name="RECENT_BRANCH_BY_REPOSITORY">
+       <map>
+-        <entry key="$PROJECT_DIR$" value="view_telegram" />
++        <entry key="$PROJECT_DIR$" value="master" />
+       </map>
+     </option>
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+@@ -69,6 +95,14 @@
+               <option name="branches">
+                 <list>
+                   <RecentBranch>
++                    <option name="branchName" value="Mock_endpoints" />
++                    <option name="lastUsedInstant" value="1600553494" />
++                  </RecentBranch>
++                  <RecentBranch>
++                    <option name="branchName" value="master" />
++                    <option name="lastUsedInstant" value="1600553485" />
++                  </RecentBranch>
++                  <RecentBranch>
+                     <option name="branchName" value="operator" />
+                     <option name="lastUsedInstant" value="1600343796" />
+                   </RecentBranch>
+@@ -77,10 +111,6 @@
+                     <option name="lastUsedInstant" value="1600184663" />
+                   </RecentBranch>
+                   <RecentBranch>
+-                    <option name="branchName" value="master" />
+-                    <option name="lastUsedInstant" value="1600184617" />
+-                  </RecentBranch>
+-                  <RecentBranch>
+                     <option name="branchName" value="view_telegram" />
+                     <option name="lastUsedInstant" value="1600094141" />
+                   </RecentBranch>
+@@ -123,7 +153,7 @@
+     <property name="last_directory_selection" value="$PROJECT_DIR$/src/main/java/com/deutsche/view" />
+     <property name="last_opened_file_path" value="$PROJECT_DIR$/groups" />
+     <property name="nodejs_package_manager_path" value="npm" />
+-    <property name="project.structure.last.edited" value="Facets" />
++    <property name="project.structure.last.edited" value="Project" />
+     <property name="project.structure.proportion" value="0.15" />
+     <property name="project.structure.side.proportion" value="0.2" />
+     <property name="settings.editor.selected.configurable" value="MavenSettings" />
+@@ -173,39 +203,24 @@
+       </set>
+     </option>
+   </component>
+-  <component name="RunManager" selected="Spring Boot.BotApp (1)">
+-    <configuration name="Example" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+-      <option name="MAIN_CLASS_NAME" value="com.deutsche.groups.Example" />
+-      <module name="channel-analysis" />
+-      <extension name="coverage">
+-        <pattern>
+-          <option name="PATTERN" value="com.deutsche.groups.*" />
+-          <option name="ENABLED" value="true" />
+-        </pattern>
+-      </extension>
+-      <method v="2">
+-        <option name="Make" enabled="true" />
+-      </method>
+-    </configuration>
+-    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
++  <component name="RunManager" selected="Spring Boot.GroupsApplication">
++    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
+       <option name="arquillianRunConfiguration">
+         <value>
+           <option name="containerStateName" value="" />
+         </value>
+       </option>
+-      <option name="TEST_OBJECT" value="class" />
++      <option name="TEST_OBJECT" value="CLASS" />
++      <properties />
++      <listeners />
+       <method v="2">
+         <option name="Make" enabled="true" />
+       </method>
+     </configuration>
+-    <configuration name="App" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+-      <module name="testTelegramBot" />
+-      <option name="SPRING_BOOT_MAIN_CLASS" value="com.deutsche.App" />
+-      <method v="2">
+-        <option name="Make" enabled="true" />
+-      </method>
++    <configuration name="test#2" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" path="$PROJECT_DIR$/groups/test.http" index="2" runType="Run single request">
++      <method v="2" />
+     </configuration>
+-    <configuration name="BotApp (1)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="false" temporary="true" nameIsGenerated="true">
++    <configuration name="BotApp" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="false" temporary="true" nameIsGenerated="true">
+       <module name="view" />
+       <extension name="coverage">
+         <pattern>
+@@ -215,52 +230,13 @@
+       </extension>
+       <option name="SPRING_BOOT_MAIN_CLASS" value="com.deutsche.view.BotApp" />
+       <option name="ALTERNATIVE_JRE_PATH" />
+-      <method v="2">
+-        <option name="Make" enabled="true" />
+-      </method>
+-    </configuration>
+-    <configuration name="ConfigServerApplication (1)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+-      <module name="discovery-service" />
+-      <extension name="coverage">
+-        <pattern>
+-          <option name="PATTERN" value="com.duetsche.configserver.*" />
+-          <option name="ENABLED" value="true" />
+-        </pattern>
+-      </extension>
+-      <option name="SPRING_BOOT_MAIN_CLASS" value="com.duetsche.configserver.ConfigServerApplication" />
+-      <method v="2">
+-        <option name="Make" enabled="true" />
+-      </method>
+-    </configuration>
+-    <configuration name="ConfigServerApplication (2)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+-      <module name="discovery-service" />
+-      <extension name="coverage">
+-        <pattern>
+-          <option name="PATTERN" value="com.deutsche.configserver.*" />
+-          <option name="ENABLED" value="true" />
+-        </pattern>
+-      </extension>
+-      <option name="SPRING_BOOT_MAIN_CLASS" value="com.deutsche.configserver.ConfigServerApplication" />
+       <method v="2">
+         <option name="Make" enabled="true" />
+       </method>
+     </configuration>
+     <configuration name="ConfigServerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+       <module name="config-server" />
+-      <option name="SPRING_BOOT_MAIN_CLASS" value="com.duetsche.configserver.ConfigServerApplication" />
+-      <method v="2">
+-        <option name="Make" enabled="true" />
+-      </method>
+-    </configuration>
+-    <configuration name="DiscoveryServiceApplication (1)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+-      <module name="config-server" />
+-      <extension name="coverage">
+-        <pattern>
+-          <option name="PATTERN" value="com.deutsche.discoveryservice.*" />
+-          <option name="ENABLED" value="true" />
+-        </pattern>
+-      </extension>
+-      <option name="SPRING_BOOT_MAIN_CLASS" value="com.deutsche.discoveryservice.DiscoveryServiceApplication" />
++      <option name="SPRING_BOOT_MAIN_CLASS" value="com.deutsche.configserver.ConfigServerApplication" />
+       <method v="2">
+         <option name="Make" enabled="true" />
+       </method>
+@@ -272,10 +248,9 @@
+         <option name="Make" enabled="true" />
+       </method>
+     </configuration>
+-    <configuration name="GroupsApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" singleton="false">
++    <configuration name="GroupsApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+       <module name="groups" />
+       <option name="SPRING_BOOT_MAIN_CLASS" value="com.deutsche.groups.GroupsApplication" />
+-      <option name="ALTERNATIVE_JRE_PATH" />
+       <method v="2">
+         <option name="Make" enabled="true" />
+       </method>
+@@ -288,24 +263,17 @@
+       </method>
+     </configuration>
+     <list>
+-      <item itemvalue="Application.Example" />
+-      <item itemvalue="Spring Boot.App" />
++      <item itemvalue="HTTP Request.test#2" />
++      <item itemvalue="Spring Boot.OperatorApplication" />
++      <item itemvalue="Spring Boot.GroupsApplication" />
+       <item itemvalue="Spring Boot.ConfigServerApplication" />
+       <item itemvalue="Spring Boot.DiscoveryServiceApplication" />
+-      <item itemvalue="Spring Boot.GroupsApplication" />
+-      <item itemvalue="Spring Boot.OperatorApplication" />
+-      <item itemvalue="Spring Boot.BotApp (1)" />
+-      <item itemvalue="Spring Boot.ConfigServerApplication (1)" />
+-      <item itemvalue="Spring Boot.ConfigServerApplication (2)" />
+-      <item itemvalue="Spring Boot.DiscoveryServiceApplication (1)" />
++      <item itemvalue="Spring Boot.BotApp" />
+     </list>
+     <recent_temporary>
+       <list>
+-        <item itemvalue="Spring Boot.BotApp (1)" />
+-        <item itemvalue="Spring Boot.ConfigServerApplication (2)" />
+-        <item itemvalue="Spring Boot.ConfigServerApplication (1)" />
+-        <item itemvalue="Spring Boot.DiscoveryServiceApplication (1)" />
+-        <item itemvalue="Application.Example" />
++        <item itemvalue="Spring Boot.BotApp" />
++        <item itemvalue="HTTP Request.test#2" />
+       </list>
+     </recent_temporary>
+   </component>
+@@ -337,6 +305,7 @@
+       <workItem from="1600519649749" duration="354000" />
+       <workItem from="1600520022017" duration="4826000" />
+       <workItem from="1600537099255" duration="13176000" />
++      <workItem from="1600563063608" duration="1919000" />
+     </task>
+     <task id="LOCAL-00001" summary="telegram UI is done">
+       <created>1600131620845</created>
+@@ -383,7 +352,7 @@
+                   <entry key="branch">
+                     <value>
+                       <list>
+-                        <option value="project/operator" />
++                        <option value="project/Mock_endpoints" />
+                       </list>
+                     </value>
+                   </entry>
+@@ -425,23 +394,23 @@
+       <screen x="62" y="0" width="1858" height="1080" />
+     </state>
+     <state x="583" y="183" key="#Plugins/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1599946510435" />
+-    <state x="350" y="8" key="#Project_Structure" timestamp="1600531611785">
++    <state x="350" y="8" key="#Project_Structure" timestamp="1600562260769">
+       <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state x="-1640" y="16" key="#Project_Structure/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600420684979" />
+-    <state x="350" y="8" key="#Project_Structure/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600531611785" />
++    <state x="350" y="8" key="#Project_Structure/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600562260769" />
+     <state x="337" y="8" key="#Project_Structure/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600183499488" />
+     <state x="280" y="6" key="#Project_Structure/62.0.1474.864@62.0.1474.864" timestamp="1599607578666" />
+-    <state x="453" y="197" width="902" height="606" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1600529899586">
++    <state x="453" y="197" width="1092" height="805" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1600563020601">
+       <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state x="-1558" y="168" width="902" height="606" key="#com.intellij.execution.impl.EditConfigurationsDialog/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600434652269" />
+-    <state x="453" y="197" width="1092" height="757" key="#com.intellij.execution.impl.EditConfigurationsDialog/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600529899586" />
+-    <state x="892" y="177" key="#com.intellij.ide.util.MemberChooser" timestamp="1600467570525">
++    <state x="453" y="197" width="1092" height="805" key="#com.intellij.execution.impl.EditConfigurationsDialog/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600563020601" />
++    <state x="892" y="177" key="#com.intellij.ide.util.MemberChooser" timestamp="1600557174012">
+       <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state x="-1207" y="152" key="#com.intellij.ide.util.MemberChooser/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600434878167" />
+-    <state x="892" y="177" key="#com.intellij.ide.util.MemberChooser/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600467570525" />
++    <state x="892" y="177" key="#com.intellij.ide.util.MemberChooser/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600557174012" />
+     <state x="883" y="177" key="#com.intellij.ide.util.MemberChooser/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600296473089" />
+     <state x="605" y="138" key="#com.intellij.ide.util.MemberChooser/62.0.1474.864@62.0.1474.864" timestamp="1599606734555" />
+     <state x="721" y="320" key="#com.intellij.ide.util.PackageChooserDialog" timestamp="1599937550769">
+@@ -486,97 +455,97 @@
+     <state x="-1526" y="204" key="FileChooserDialogImpl/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600423325949" />
+     <state x="501" y="227" key="FileChooserDialogImpl/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600538900048" />
+     <state x="481" y="243" key="FileChooserDialogImpl/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600296163679" />
+-    <state width="1180" height="370" key="GridCell.Tab.0.bottom" timestamp="1600550317054">
+-      <screen x="78" y="0" width="1458" height="864" />
++    <state width="1507" height="446" key="GridCell.Tab.0.bottom" timestamp="1600564865780">
++      <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1237" height="244" key="GridCell.Tab.0.bottom/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600528626967" />
+-    <state width="1507" height="370" key="GridCell.Tab.0.bottom/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549623533" />
++    <state width="1507" height="446" key="GridCell.Tab.0.bottom/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600564865780" />
+     <state width="1431" height="360" key="GridCell.Tab.0.bottom/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864" timestamp="1600266195273" />
+     <state width="1431" height="402" key="GridCell.Tab.0.bottom/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600298770730" />
+     <state width="1431" height="319" key="GridCell.Tab.0.bottom/62.0.1474.864@62.0.1474.864" timestamp="1599608132703" />
+     <state width="1180" height="370" key="GridCell.Tab.0.bottom/78.0.1458.864@78.0.1458.864" timestamp="1600550317054" />
+-    <state width="1180" height="370" key="GridCell.Tab.0.center" timestamp="1600550317054">
+-      <screen x="78" y="0" width="1458" height="864" />
++    <state width="1507" height="446" key="GridCell.Tab.0.center" timestamp="1600564865780">
++      <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1237" height="244" key="GridCell.Tab.0.center/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600528626967" />
+-    <state width="1507" height="370" key="GridCell.Tab.0.center/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549623533" />
++    <state width="1507" height="446" key="GridCell.Tab.0.center/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600564865780" />
+     <state width="1431" height="360" key="GridCell.Tab.0.center/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864" timestamp="1600266195273" />
+     <state width="1431" height="402" key="GridCell.Tab.0.center/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600298770730" />
+     <state width="1431" height="319" key="GridCell.Tab.0.center/62.0.1474.864@62.0.1474.864" timestamp="1599608132701" />
+     <state width="1180" height="370" key="GridCell.Tab.0.center/78.0.1458.864@78.0.1458.864" timestamp="1600550317054" />
+-    <state width="1180" height="370" key="GridCell.Tab.0.left" timestamp="1600550317054">
+-      <screen x="78" y="0" width="1458" height="864" />
++    <state width="1507" height="446" key="GridCell.Tab.0.left" timestamp="1600564865779">
++      <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1237" height="244" key="GridCell.Tab.0.left/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600528626967" />
+-    <state width="1507" height="370" key="GridCell.Tab.0.left/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549623533" />
++    <state width="1507" height="446" key="GridCell.Tab.0.left/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600564865779" />
+     <state width="1431" height="360" key="GridCell.Tab.0.left/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864" timestamp="1600266195273" />
+     <state width="1431" height="402" key="GridCell.Tab.0.left/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600298770730" />
+     <state width="1431" height="319" key="GridCell.Tab.0.left/62.0.1474.864@62.0.1474.864" timestamp="1599608132701" />
+     <state width="1180" height="370" key="GridCell.Tab.0.left/78.0.1458.864@78.0.1458.864" timestamp="1600550317054" />
+-    <state width="1180" height="370" key="GridCell.Tab.0.right" timestamp="1600550317054">
+-      <screen x="78" y="0" width="1458" height="864" />
++    <state width="1507" height="446" key="GridCell.Tab.0.right" timestamp="1600564865780">
++      <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1237" height="244" key="GridCell.Tab.0.right/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600528626967" />
+-    <state width="1507" height="370" key="GridCell.Tab.0.right/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549623533" />
++    <state width="1507" height="446" key="GridCell.Tab.0.right/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600564865780" />
+     <state width="1431" height="360" key="GridCell.Tab.0.right/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864" timestamp="1600266195273" />
+     <state width="1431" height="402" key="GridCell.Tab.0.right/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600298770730" />
+     <state width="1431" height="319" key="GridCell.Tab.0.right/62.0.1474.864@62.0.1474.864" timestamp="1599608132702" />
+     <state width="1180" height="370" key="GridCell.Tab.0.right/78.0.1458.864@78.0.1458.864" timestamp="1600550317054" />
+-    <state width="1180" height="370" key="GridCell.Tab.1.bottom" timestamp="1600550317055">
+-      <screen x="78" y="0" width="1458" height="864" />
++    <state width="1507" height="446" key="GridCell.Tab.1.bottom" timestamp="1600564865781">
++      <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1237" height="244" key="GridCell.Tab.1.bottom/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600528626967" />
+-    <state width="1507" height="370" key="GridCell.Tab.1.bottom/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549623534" />
++    <state width="1507" height="446" key="GridCell.Tab.1.bottom/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600564865781" />
+     <state width="1431" height="402" key="GridCell.Tab.1.bottom/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864" timestamp="1600265930227" />
+     <state width="1431" height="402" key="GridCell.Tab.1.bottom/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600298770731" />
+     <state width="1180" height="370" key="GridCell.Tab.1.bottom/78.0.1458.864@78.0.1458.864" timestamp="1600550317055" />
+-    <state width="1180" height="370" key="GridCell.Tab.1.center" timestamp="1600550317055">
+-      <screen x="78" y="0" width="1458" height="864" />
++    <state width="1507" height="446" key="GridCell.Tab.1.center" timestamp="1600564865781">
++      <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1237" height="244" key="GridCell.Tab.1.center/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600528626967" />
+-    <state width="1507" height="370" key="GridCell.Tab.1.center/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549623533" />
++    <state width="1507" height="446" key="GridCell.Tab.1.center/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600564865781" />
+     <state width="1431" height="402" key="GridCell.Tab.1.center/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864" timestamp="1600265930226" />
+     <state width="1431" height="402" key="GridCell.Tab.1.center/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600298770730" />
+     <state width="1180" height="370" key="GridCell.Tab.1.center/78.0.1458.864@78.0.1458.864" timestamp="1600550317055" />
+-    <state width="1180" height="370" key="GridCell.Tab.1.left" timestamp="1600550317055">
+-      <screen x="78" y="0" width="1458" height="864" />
++    <state width="1507" height="446" key="GridCell.Tab.1.left" timestamp="1600564865780">
++      <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1237" height="244" key="GridCell.Tab.1.left/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600528626967" />
+-    <state width="1507" height="370" key="GridCell.Tab.1.left/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549623533" />
++    <state width="1507" height="446" key="GridCell.Tab.1.left/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600564865780" />
+     <state width="1431" height="402" key="GridCell.Tab.1.left/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864" timestamp="1600265930226" />
+     <state width="1431" height="402" key="GridCell.Tab.1.left/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600298770730" />
+     <state width="1180" height="370" key="GridCell.Tab.1.left/78.0.1458.864@78.0.1458.864" timestamp="1600550317055" />
+-    <state width="1180" height="370" key="GridCell.Tab.1.right" timestamp="1600550317055">
+-      <screen x="78" y="0" width="1458" height="864" />
++    <state width="1507" height="446" key="GridCell.Tab.1.right" timestamp="1600564865781">
++      <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1237" height="244" key="GridCell.Tab.1.right/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600528626967" />
+-    <state width="1507" height="370" key="GridCell.Tab.1.right/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549623534" />
++    <state width="1507" height="446" key="GridCell.Tab.1.right/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600564865781" />
+     <state width="1431" height="402" key="GridCell.Tab.1.right/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864" timestamp="1600265930226" />
+     <state width="1431" height="402" key="GridCell.Tab.1.right/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600298770731" />
+     <state width="1180" height="370" key="GridCell.Tab.1.right/78.0.1458.864@78.0.1458.864" timestamp="1600550317055" />
+-    <state width="1507" height="421" key="GridCell.Tab.2.bottom" timestamp="1600549081012">
++    <state width="1507" height="375" key="GridCell.Tab.2.bottom" timestamp="1600563042339">
+       <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1562" height="530" key="GridCell.Tab.2.bottom/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600466083484" />
+-    <state width="1507" height="421" key="GridCell.Tab.2.bottom/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549081012" />
++    <state width="1507" height="375" key="GridCell.Tab.2.bottom/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600563042339" />
+     <state width="1562" height="386" key="GridCell.Tab.2.bottom/78.0.1458.864@78.0.1458.864" timestamp="1600473208345" />
+-    <state width="1507" height="421" key="GridCell.Tab.2.center" timestamp="1600549081012">
++    <state width="1507" height="375" key="GridCell.Tab.2.center" timestamp="1600563042338">
+       <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1562" height="530" key="GridCell.Tab.2.center/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600466083484" />
+-    <state width="1507" height="421" key="GridCell.Tab.2.center/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549081012" />
++    <state width="1507" height="375" key="GridCell.Tab.2.center/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600563042338" />
+     <state width="1562" height="386" key="GridCell.Tab.2.center/78.0.1458.864@78.0.1458.864" timestamp="1600473208345" />
+-    <state width="1507" height="421" key="GridCell.Tab.2.left" timestamp="1600549081012">
++    <state width="1507" height="375" key="GridCell.Tab.2.left" timestamp="1600563042338">
+       <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1562" height="530" key="GridCell.Tab.2.left/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600466083484" />
+-    <state width="1507" height="421" key="GridCell.Tab.2.left/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549081012" />
++    <state width="1507" height="375" key="GridCell.Tab.2.left/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600563042338" />
+     <state width="1562" height="386" key="GridCell.Tab.2.left/78.0.1458.864@78.0.1458.864" timestamp="1600473208345" />
+-    <state width="1507" height="421" key="GridCell.Tab.2.right" timestamp="1600549081012">
++    <state width="1507" height="375" key="GridCell.Tab.2.right" timestamp="1600563042339">
+       <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state width="1562" height="530" key="GridCell.Tab.2.right/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600466083484" />
+-    <state width="1507" height="421" key="GridCell.Tab.2.right/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600549081012" />
++    <state width="1507" height="375" key="GridCell.Tab.2.right/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600563042339" />
+     <state width="1562" height="386" key="GridCell.Tab.2.right/78.0.1458.864@78.0.1458.864" timestamp="1600473208345" />
+     <state x="571" y="277" key="IDE.errors.dialog" timestamp="1600131486963">
+       <screen x="62" y="0" width="1858" height="1080" />
+@@ -594,11 +563,11 @@
+       <screen x="-1858" y="10" width="1474" height="864" />
+     </state>
+     <state x="-1456" y="121" key="MultipleFileMergeDialog/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600419989787" />
+-    <state x="388" y="176" width="1040" height="847" key="SettingsEditor" timestamp="1600543507770">
++    <state x="461" y="161" width="1040" height="847" key="SettingsEditor" timestamp="1600562543514">
+       <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+     <state x="-1640" y="16" key="SettingsEditor/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600340444828" />
+-    <state x="388" y="176" width="1040" height="847" key="SettingsEditor/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600543507770" />
++    <state x="461" y="161" width="1040" height="847" key="SettingsEditor/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600562543514" />
+     <state x="-1609" y="29" key="SettingsEditor/-1870.10.1486.864/62.0.1858.1080@-1870.10.1486.864" timestamp="1600165882053" />
+     <state x="337" y="8" key="SettingsEditor/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600182452286" />
+     <state x="280" y="6" key="SettingsEditor/62.0.1474.864@62.0.1474.864" timestamp="1599608208545" />
+@@ -651,10 +620,10 @@
+     <state x="-1388" y="198" width="672" height="543" key="search.everywhere.popup/-1858.10.1474.864/78.0.1842.1080@-1858.10.1474.864" timestamp="1600434591115" />
+     <state x="665" y="235" width="840" height="679" key="search.everywhere.popup/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600543524930" />
+     <state x="654" y="235" width="672" height="678" key="search.everywhere.popup/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1599946497468" />
+-    <state x="496" y="354" key="spring file set editor" timestamp="1600543505210">
++    <state x="496" y="354" key="spring file set editor" timestamp="1600562329845">
+       <screen x="78" y="0" width="1842" height="1080" />
+     </state>
+-    <state x="496" y="354" key="spring file set editor/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600543505210" />
++    <state x="496" y="354" key="spring file set editor/-1858.10.1474.864/78.0.1842.1080@78.0.1842.1080" timestamp="1600562329845" />
+     <state x="537" y="122" key="spring file set editor/-1870.10.1486.864/62.0.1858.1080@62.0.1858.1080" timestamp="1600172069528" />
+   </component>
+   <component name="XDebuggerManager">
+Index: view/src/main/java/com/deutsche/view/commands/functions/Repetitions.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- view/src/main/java/com/deutsche/view/commands/functions/Repetitions.java	(date 1600564362800)
++++ view/src/main/java/com/deutsche/view/commands/functions/Repetitions.java	(date 1600564362800)
+@@ -0,0 +1,16 @@
++package com.deutsche.view.commands.functions;
++
++import org.json.JSONObject;
++
++import java.util.function.Function;
++
++public class Repetitions implements Function<JSONObject, String> {
++    @Override
++    public String apply(JSONObject recievedMessage) {
++        String returnMessage = "";
++        returnMessage += "Всего слов: " + recievedMessage.get("allWords") + "\n";
++        returnMessage += "Совпадений: " + recievedMessage.get("matches") + "\n";
++        returnMessage += "Процентов: " + (double)((int)(Double.parseDouble(recievedMessage.get("matches").toString()) / Double.parseDouble(recievedMessage.get("allWords").toString()) * 10000)) / 100 + "%";
++        return returnMessage;
++    }
++}

@@ -4,7 +4,7 @@ import com.deutsche.view.handlers.Handler;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
@@ -14,7 +14,7 @@ import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 import javax.annotation.PostConstruct;
 import java.util.List;
 
-@Service
+@Component
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
