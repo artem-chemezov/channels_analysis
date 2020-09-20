@@ -48,14 +48,17 @@ public class VkDataServiceImpl implements VkDataService {
     @Override
     public List<VkDataDao> getPosts(String groupId, int amount) throws ClientException, ApiException {
         int id = getGroupId(groupId);
-
-        GetResponse getResponse = vk.wall().get(actor)
-                .ownerId(-id)
-                .count(amount)
-                .execute();
-
         List<VkDataDao> response = new ArrayList<>();
-        getResponse.getItems().forEach(item -> response.add(new VkDataDao(item)));
+
+        for (int i = 0; i < amount / 100 + 1; i++) {
+            GetResponse getResponse = vk.wall().get(actor)
+                    .ownerId(-id)
+                    .count(amount)
+                    .offset(i)
+                    .execute();
+
+            getResponse.getItems().forEach(item -> response.add(new VkDataDao(item)));
+        }
 
         return response;
     }
@@ -63,13 +66,17 @@ public class VkDataServiceImpl implements VkDataService {
     @SneakyThrows
     @Override
     public List<VkDataDao> getPostsById(int groupId, int amount) {
-        GetResponse getResponse = vk.wall().get(actor)
-                .ownerId(-groupId)
-                .count(amount)
-                .execute();
-
         List<VkDataDao> response = new ArrayList<>();
-        getResponse.getItems().forEach(item -> response.add(new VkDataDao(item)));
+
+        for (int i = 0; i < amount / 100 + 1; i++) {
+            GetResponse getResponse = vk.wall().get(actor)
+                    .ownerId(-groupId)
+                    .count(amount)
+                    .offset(i)
+                    .execute();
+
+            getResponse.getItems().forEach(item -> response.add(new VkDataDao(item)));
+        }
 
         return response;
     }

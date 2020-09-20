@@ -38,7 +38,7 @@ public class MongoMatcherServiceImpl implements MongoMatcherService {
 
 
 //        mongoTemplate.find(new Query().addCriteria(Criteria.where("text").regex(".*стареть.*")), VkDataDao.class)
-        return List.of(sumOfAllWords, sumOfClueWord);
+        return List.of(sumOfClueWord, sumOfAllWords);
     }
 
     private Integer findWord(String textString, String word) {

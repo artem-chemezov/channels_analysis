@@ -16,6 +16,9 @@ public class CategorizeChannel implements Function<List<String>,List<String>> {
 
     @Override
     public List<String> apply(List<String> params) {
+        if (params.size() < 3 || params.size() > 4){
+            return List.of("Введите корректное количество параметров");
+        }
         String userId = params.get(0);
         String chatId = params.get(1);
         String group = params.get(2);
