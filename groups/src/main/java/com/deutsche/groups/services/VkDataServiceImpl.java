@@ -130,7 +130,7 @@ public class VkDataServiceImpl implements VkDataService {
 
                 mongoMatcherService.findSumOfWords();
 
-                WordMatchingResponse response = new WordMatchingResponse((String) tempList.get(2),50, 150);
+                WordMatchingResponse response = new WordMatchingResponse((String) tempList.get(1),50, 150);
                 JSONObject object = new JSONObject();
                 object.put("functionality", tempList.get(0));
                 object.put("chatId", response.getChatId());

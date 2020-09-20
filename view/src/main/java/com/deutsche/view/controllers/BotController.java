@@ -23,7 +23,7 @@ public class BotController {
         JSONObject jsonMessage = new JSONObject(message);
         sendMessage.setChatId(Long.parseLong(jsonMessage.get("chatId").toString())); //244520472
         System.out.println(message);
-        Optional<Functionality> functionalityMessage = Arrays.stream(Functionality.values()).filter(value -> value.name == jsonMessage.get("functionality")).findFirst();
+        Optional<Functionality> functionalityMessage = Arrays.stream(Functionality.values()).filter(value -> value.name.equals(jsonMessage.get("functionality"))).findFirst();
         sendMessage.setText(functionalityMessage.get().processMessage.apply(jsonMessage));
 //       todo
 //        sendMessage.setChatId(chatId);
