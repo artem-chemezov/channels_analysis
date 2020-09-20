@@ -35,12 +35,14 @@ public class VkDataServiceImpl implements VkDataService {
     private final VkApiClient vk;
     private final AmqpTemplate template;
     private final MongoGroupRepository mongoGroupRepository;
+    private final MongoMatcherService mongoMatcherService;
 
-    public VkDataServiceImpl(ServiceActor actor, VkApiClient vk, AmqpTemplate template, MongoGroupRepository mongoGroupRepository) {
+    public VkDataServiceImpl(ServiceActor actor, VkApiClient vk, AmqpTemplate template, MongoGroupRepository mongoGroupRepository, MongoMatcherService mongoMatcherService) {
         this.actor = actor;
         this.vk = vk;
         this.template = template;
         this.mongoGroupRepository = mongoGroupRepository;
+        this.mongoMatcherService = mongoMatcherService;
     }
 
     @Override
@@ -125,7 +127,9 @@ public class VkDataServiceImpl implements VkDataService {
             List tempList = SerializationUtils.deserialize(message.getBody());
             if(tempList.get(0).equals(REPETITIONS.getName())) {
                 addPosts((String) tempList.get(3),(Integer) tempList.get(4));
-                //some logic with mongo
+
+                mongoMatcherService.findSumOfWords();
+
                 WordMatchingResponse response = new WordMatchingResponse((String) tempList.get(2),50, 150);
                 JSONObject object = new JSONObject();
                 object.put("functionality", tempList.get(0));
