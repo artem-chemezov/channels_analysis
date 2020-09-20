@@ -36,7 +36,7 @@ public class MongoMatcherServiceImpl implements MongoMatcherService {
                 .reduce(Integer::sum)
                 .orElse(0);
         //mongoTemplate.find(new Query().addCriteria(Criteria.where("text").regex(".*стареть.*")), VkDataDao.class)
-        return List.of(sumOfAllWords, sumOfClueWord);
+        return List.of(sumOfClueWord, sumOfAllWords);
     }
 
     @Override

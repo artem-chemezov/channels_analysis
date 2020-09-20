@@ -21,11 +21,17 @@ public class WordFromChannel implements Function<List<String>,List<String>> {
     @Override
     public List<String> apply(List<String> params) {
 
+        if (params.size() < 4 || params.size() > 5){
+            return List.of("Введите корректное количество параметров");
+        }
         String userId = params.get(0);
         String chatId = params.get(1);
         String word =  params.get(2);
         String group = params.get(3);
-        String amount = params.get(4);
+        String amount = "25";
+        if (params.size() == 5) {
+            amount = params.get(4);
+        }
 
 
         String query = "http://localhost:9090/repetitions?";
