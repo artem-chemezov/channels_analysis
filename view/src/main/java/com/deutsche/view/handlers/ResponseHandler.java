@@ -39,7 +39,7 @@ public class ResponseHandler implements Handler{
             state.put(chatId, option.orElse(Buttons.DEFAULT));
             keyboard.setEmpty(resultMessage);
             resultMessage.setText(result);
-            return List.of(resultMessage);
+            return List.of(resultMessage, new SendMessage().setText(Buttons.examples));
         }
 
         List<String> params = new ArrayList<>();

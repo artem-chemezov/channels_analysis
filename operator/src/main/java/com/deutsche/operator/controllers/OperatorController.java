@@ -27,6 +27,13 @@ public class OperatorController {
     }
 
     @ResponseBody
+    @GetMapping("/statistics")
+    public Status getStatistics(@RequestParam int userId, @RequestParam long chatId, @RequestParam String group, @RequestParam int amount){
+        System.out.println("recieved from Bot");
+        return commandsService.getStatistics(userId, chatId, group, amount);
+    }
+
+    @ResponseBody
     @GetMapping("/classification")
     public Status getClassification(@RequestParam int userId, @RequestParam long chatId, @RequestParam String group, @RequestParam int amount){
         System.out.println("recieved from Bot");

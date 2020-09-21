@@ -2,13 +2,23 @@ package com.deutsche.operator.services;
 
 import com.deutsche.operator.enums.Status;
 import com.deutsche.operator.repo.GroupsRepo;
+import com.deutsche.operator.repo.SavedPosts;
 import lombok.SneakyThrows;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class TelegramCommandsService implements CommandsService {
+    @Value("${groups.url}")
+    protected String groupsUrl;
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private SavedPosts savedPosts;
+
     @Autowired
     private CheckConditionsService checkConditionsService;
     @Autowired
@@ -48,32 +58,29 @@ public class TelegramCommandsService implements CommandsService {
             String[] error = {"error",  checkUserVar.code + ""};
             return error;
         }
+        String query = groupsUrl + "group/getFreshPostId?";
+        query += "name=" + group;
+        System.out.println(query);
+        String postFreshId = restTemplate.getForObject(query, String.class);
+        if (savedPosts.findByPostId(postFreshId) == null){
+            int groupId = restService.getIdGroupByName(group);
+            return restService.posts(groupId, amount);
+        }
+        else {
+            int groupId = restService.getIdGroupByName(group);
+            return restService.posts(groupId, amount);
+        }
 
+    }
 
+    @Override
+    public Status getStatistics(int userId, long chatId, String group, int amount) {
+        Status checkUserVar = checkConditionsService.checkUser(userId);
+        if (checkUserVar.code < 0){
+            return Status.UNKNOWNUSER;
+        }
 
         int groupId = restService.getIdGroupByName(group);
-        return restService.posts(groupId, amount);
-    }
-
-    @Override
-    public JSONObject getGroupClass(String group) {
-        return null;
-//        UserErrors checkUserVar = checkConditionsService.checkUser(userId);
-//        if (checkUserVar.code < 0){
-//            return mew JSONobject;//checkUserVar.code;
-//        }
-//
-//        int groupId = restService.getIdGroupByName(group);
-//        GroupsDefinition groupsDefinition = checkConditionsService.defineGroupDatabase(groupId);
-//        if (groupsDefinition.code < 0){
-//            return groupsDefinition.code;
-//        }
-//
-//        return 10;
-    }
-
-    @Override
-    public JSONObject getStatistics(String group) {
-        return null;
+        return restService.classification(chatId, groupId, amount);
     }
 }

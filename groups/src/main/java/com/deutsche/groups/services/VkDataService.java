@@ -17,4 +17,5 @@ public interface VkDataService {
     public ResponseEntity getClassification(String chatId, String groupId, int amountPosts);
     public boolean checkConnection(String groupId);
     public int getGroupId(String name) throws ClientException, ApiException ;
+    String getFreshPostId(String groupName);
 }

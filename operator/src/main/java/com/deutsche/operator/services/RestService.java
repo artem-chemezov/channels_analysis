@@ -1,7 +1,10 @@
 package com.deutsche.operator.services;
 
 import com.deutsche.operator.enums.Status;
+import com.deutsche.operator.models.Post;
+import com.deutsche.operator.models.VkDataDao;
 import com.deutsche.operator.rabbit.RabbitConfiguration;
+import com.deutsche.operator.repo.SavedPosts;
 import lombok.SneakyThrows;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -17,7 +20,8 @@ import org.springframework.web.client.RestTemplate;
 public class RestService {
     @Value("${groups.url}")
     protected String groupsUrl;
-
+    @Autowired
+    private SavedPosts savedPosts;
     Logger logger = Logger.getLogger(RabbitConfiguration.class);
     @Autowired
     private SimpleMessageListenerContainer simpleMessageListenerContainer;
@@ -68,15 +72,20 @@ public class RestService {
         query += "groupId=" + groupId;
         query += "&amount=" + amount;
         System.out.println("postsURL: " + query);
-        ResponseEntity<Object[]> answer = restTemplate.getForEntity(query, Object[].class);
+        ResponseEntity<VkDataDao[]> answer = restTemplate.getForEntity(query, VkDataDao[].class);
+        for (VkDataDao el : answer.getBody()) {
+            savedPosts.save(new Post(el.getId()));
+        }
         return answer.getBody();
     }
 
-    public int clasify(String word, int groupId){
+    public Object[] postsFromMongo(int groupId, int amount) {
         JSONObject result = new JSONObject();
-        String query = groupsUrl + "mongo/repetitions/";
-        query += "word=" + word;
-        query += "&groupId=" + groupId;
-        return restTemplate.getForObject(query, int.class);
+        String query = groupsUrl + "mongo/posts?";
+        query += "groupId=" + groupId;
+        query += "&amount=" + amount;
+        System.out.println("postsURL: " + query);
+        ResponseEntity<Object[]> answer = restTemplate.getForEntity(query, Object[].class);
+        return answer.getBody();
     }
 }

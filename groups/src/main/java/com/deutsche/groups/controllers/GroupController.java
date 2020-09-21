@@ -7,6 +7,7 @@ import com.vk.api.sdk.exceptions.ApiException;
 import com.vk.api.sdk.exceptions.ClientException;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -19,13 +20,16 @@ public class GroupController {
     private GroupServiceImpl groupServiceImpl;
     @Autowired
     private VkDataService vkDataService;
-
+    @Autowired
+    private MongoGroupController mongoGroupController;
+    @Autowired
+    private MongoRepository mongoRepository;
 
     @SneakyThrows
     @GetMapping("/posts")
     public @ResponseBody List<VkDataDao> getPosts(@RequestParam("name") String name, @RequestParam("amount") int amount){
         List<VkDataDao> posts = vkDataService.getPosts(name, amount);
-        //save(posts)
+        posts.forEach(post -> mongoRepository.save(post));
         return posts; // на 4 сервис
     }
 
@@ -52,6 +56,11 @@ public class GroupController {
         } catch (ClientException | ApiException e) {
             return -3;
         }
+    }
+
+    @GetMapping("/getFreshPostId")
+    public String getFreshPostId(@RequestParam("name") String groupName){
+        return vkDataService.getFreshPostId(groupName);
     }
 
 

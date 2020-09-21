@@ -10,14 +10,13 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.function.Function;
 
-public class CategorizeChannel implements Function<List<String>,List<String>> {
+public class Classification implements Function<List<String>,List<String>> {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ErrorHandler errorHandler = new ErrorHandlerImpl();
-
     @Override
     public List<String> apply(List<String> params) {
         if (params.size() < 3 || params.size() > 4){
-            return List.of("Введите корректное количество параметров");
+            return List.of("Введите некорректное количество параметров");
         }
         String userId = params.get(0);
         String chatId = params.get(1);

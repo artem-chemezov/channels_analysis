@@ -9,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -23,9 +25,11 @@ public class MongoGroupController {
 
     @GetMapping("/posts")
     @ResponseBody
-    public List<VkDataDao> getPosts(){
+    public List<VkDataDao> getPosts(@RequestParam int groupId, @RequestParam int amount){
         List<VkDataDao> posts = mongoGroupRepository.findAll();
-        return posts; // на 4 сервис
+        List<VkDataDao> result = new ArrayList<>();
+        posts.stream().filter(post -> post.getOwner_id().equals(BigInteger.valueOf(groupId))).forEach(result::add);
+        return result;//.subList(0, amount - 1);
     }
 
     @SneakyThrows

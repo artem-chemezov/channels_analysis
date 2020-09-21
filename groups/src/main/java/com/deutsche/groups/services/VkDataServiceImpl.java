@@ -138,6 +138,13 @@ public class VkDataServiceImpl implements VkDataService {
         return resp.get(0).getId();
     }
 
+    @SneakyThrows
+    @Override
+    public String getFreshPostId(String groupName) {
+        List<VkDataDao> post = getPosts(groupName, 1);
+        return post.get(0).getId();
+    }
+
     @Autowired
     public void messageListenerContainer(SimpleMessageListenerContainer container) {
         container.setMessageListener(message -> {

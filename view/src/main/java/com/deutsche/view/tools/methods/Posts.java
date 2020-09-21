@@ -18,8 +18,8 @@ public class Posts  implements Function<List<String>,List<String>> {
 
     @Override
     public List<String> apply(List<String> params) {
-        if (params.size() < 3 || params.size() > 4){
-            return List.of("Введите корректное количество параметров");
+        if (params.size() < 4 || params.size() > 5){
+            return List.of("Введите некорректное количество параметров");
         }
         String userId = params.get(0);
         String chatId = params.get(1);

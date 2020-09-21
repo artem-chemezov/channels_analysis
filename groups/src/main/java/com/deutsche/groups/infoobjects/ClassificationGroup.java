@@ -8,7 +8,8 @@ import java.util.List;
 public enum ClassificationGroup {
     IT("IT", VkDataConstants.wordsIT, 5),
     MOVIES("Movies", VkDataConstants.wordsMovies, 5),
-    ADULTSONLY ("Adults only! (18+)", VkDataConstants.adultsOnly, 5);
+    ADULTSONLY ("Adults only! (18+)", VkDataConstants.adultsOnly, 5),
+    PROFANITY ("Profanity", VkDataConstants.profanity, 5);
 
     private String category;
     private List<String> matchers;
